@@ -1,62 +1,80 @@
-# Welcome back to the Production Repo!
+# ¡Bienvenido de nuevo al Repositorio de Producción! 👋
 
-## And welcome to the AWS Bedrock AgentCore Finale
+## Y bienvenido al Gran Final de **AWS Bedrock AgentCore** 🎉
 
-![Course Image](../assets/finale.png)
+![Imagen del Curso](../assets/finale.png)
 
-_If you're looking at this in Cursor, please right click on the filename in the Explorer on the left, and select "Open preview", to view it in formatted glory._
+*Si estás viendo esto en **Cursor**, haz clic derecho sobre el nombre del archivo en el Explorador de la izquierda y selecciona **“Open preview”** para verlo con formato completo.*
 
-### Step 1: IAM (groan)
+---
 
-You're all pros now, so you get pro-level instructions!
+### 🧩 Paso 1: IAM (sí… 😅)
 
-1. Sign in to the AWS console as your root user
-2. Go to IAM and User Groups
-3. Create a new User Group called "AgentAccess"
-4. Add it to user aiengineer
-5. Attach policies: `AmazonBedrockFullAccess`, `AWSCodeBuildAdminAccess`, `BedrockAgentCoreFullAccess`
+¡Ya eres todo un profesional, así que ahora recibirás instrucciones de nivel experto!
 
-Also as of today: you'd need to have access to Claude Sonnet 4 model in us-west-2.
+1. Inicia sesión en la **consola de AWS** como usuario raíz.
+2. Ve a **IAM → Grupos de Usuarios (User Groups)**.
+3. Crea un nuevo grupo de usuarios llamado **"AgentAccess"**.
+4. Añádelo al usuario **aiengineer**.
+5. Asigna las siguientes políticas:
 
-#### Now sign in as your IAM user.
+   * `AmazonBedrockFullAccess`
+   * `AWSCodeBuildAdminAccess`
+   * `BedrockAgentCoreFullAccess`
 
-1. Navigate to AWS Bedrock AgentCore
-2. Select Observability in the sidebar
-3. Select the option to turn this on - I have an option to only enable the free tier, which I chose
+Además, a partir de hoy, necesitas tener acceso al modelo **Claude Sonnet 4** en la región **us-west-2**.
 
-And save.
+#### Ahora inicia sesión como tu usuario IAM.
 
-### Step 2: reading assignment
+1. Navega a **AWS Bedrock AgentCore**.
+2. Selecciona **Observability** en la barra lateral.
+3. Activa la opción correspondiente (puedes habilitar solo la versión gratuita si lo prefieres).
 
-The main Amazon Bedrock AgentCore landing page:  
-https://aws.amazon.com/bedrock/agentcore/
+Y guarda los cambios. ✅
 
-The user guide, examples and reference:  
-https://aws.github.io/bedrock-agentcore-starter-toolkit/index.html
+---
 
-And more links as FYI:
+### 📖 Paso 2: Lectura Recomendada
 
-The AgentCore Python SDK:  
-https://github.com/aws/bedrock-agentcore-sdk-python
+Página principal de **Amazon Bedrock AgentCore:**
+🔗 [https://aws.amazon.com/bedrock/agentcore/](https://aws.amazon.com/bedrock/agentcore/)
 
-The AgentCore Starter Toolkit (CLI):  
-https://github.com/aws/bedrock-agentcore-starter-toolkit  
+Guía de usuario, ejemplos y documentación de referencia:
+🔗 [https://aws.github.io/bedrock-agentcore-starter-toolkit/index.html](https://aws.github.io/bedrock-agentcore-starter-toolkit/index.html)
 
-### Step 3 - introducing the uv project in this folder
+Más enlaces de interés:
 
-I have added just a few dependencies to this project:  
-- bedrock-agentcore
-- strands-agents
-- bedrock-agentcore-starter-toolkit
-- pydantic
+* **SDK de Python de AgentCore:**
+  🔗 [https://github.com/aws/bedrock-agentcore-sdk-python](https://github.com/aws/bedrock-agentcore-sdk-python)
+* **AgentCore Starter Toolkit (CLI):**
+  🔗 [https://github.com/aws/bedrock-agentcore-starter-toolkit](https://github.com/aws/bedrock-agentcore-starter-toolkit)
 
-So if you do a `cd finale` and then `uv sync` you will have all those packages installed.
+---
 
-### Step 4 - making your first agent
+### ⚙️ Paso 3: Presentación del Proyecto *uv* en esta Carpeta
 
-Make a new file in this directory called `first.py`
+He añadido solo unas pocas dependencias a este proyecto:
 
-Put in this code:
+* `bedrock-agentcore`
+* `strands-agents`
+* `bedrock-agentcore-starter-toolkit`
+* `pydantic`
+
+Así que si ejecutas:
+
+```bash
+cd finale
+uv sync
+```
+
+tendrás todos esos paquetes instalados.
+
+---
+
+### 🤖 Paso 4: Crear tu Primer Agente
+
+Crea un nuevo archivo en este directorio llamado **`first.py`** y coloca este código:
+
 
 ```python
 from bedrock_agentcore import BedrockAgentCoreApp
@@ -77,48 +95,77 @@ if __name__ == "__main__":
     app.run()
 ```
 
-Now run this to test the server locally:
+Ahora ejecuta este comando para probar el servidor localmente:
 
-`uv run first.py`
+```bash
+uv run first.py
+```
 
-Leave this server running, and open a new Terminal in Cursor, and send in a message:
+Deja este servidor en ejecución y abre una **nueva terminal** en Cursor. Envía un mensaje con el siguiente comando:
 
-`curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"prompt": "Hello can you hear me??"}'`
+```bash
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"prompt": "Hello can you hear me??"}'
+```
 
-### Step 5 - deploy!
+---
 
-Here is the big command - but also please see the super-valuable heads up from student Andy C. below.
+### ☁️ Paso 5 - ¡Despliega!
 
-`uv run agentcore configure -e first.py`  
-and pick all the defaults.
+Aquí viene el gran comando — pero también presta atención al **valiosísimo consejo del estudiante Andy C.** 👇
 
-NOTE FROM ANDY C.:
+```bash
+uv run agentcore configure -e first.py
+```
 
-> My default aws region is set for "us-east-2" but the Claude model we're using is only available in "us-west-2". This caused a number of different errors when trying to deploy the AgentCore suite. This can easily be corrected with a flag that points to the model's region:  
-> `uv run agentcore configure -e first.py --region us-west-2`  
-> Once I did that, everything in the AgentCore lesson went without a hitch. It was so fun and easy!
+y selecciona todas las opciones por defecto.
 
+---
 
-After you run the command (my one, or use Andy's flag if your Bedrock is in a different region):  
+📝 **NOTA DE ANDY C.:**
 
-`uv run agentcore launch`
+> Mi región predeterminada de AWS estaba configurada como **“us-east-2”**, pero el modelo Claude que usamos solo está disponible en **“us-west-2”**.
+> Esto provocó varios errores al intentar desplegar el conjunto de AgentCore.
+> Se soluciona fácilmente añadiendo un *flag* que apunte a la región del modelo:
+>
+> ```bash
+> uv run agentcore configure -e first.py --region us-west-2
+> ```
+>
+> Una vez hecho esto, ¡todo en la lección de AgentCore funcionó sin problemas!
+> Fue tan divertido como sencillo. 😄
 
-And then...
+---
 
-`uv run agentcore invoke '{"prompt": "Hello can you hear me??"}'`
+Después de ejecutar el comando anterior (ya sea el mío o el de Andy si tu Bedrock está en otra región):
 
-Goodness! Do you realize everything that happened:  
-- AgentCore built a container
-- AgentCore deployed it to ECR
-- AgentCore set up all the IAM
-- AgentCore deployed something like App Runner
-- AgentCore sent it a message
+```bash
+uv run agentcore launch
+```
 
-It's like a Week, in a Minute!!
+Y luego…
 
-### Step 6 - AND NOW - tools with Strands
+```bash
+uv run agentcore invoke '{"prompt": "Hello can you hear me??"}'
+```
 
-Add this to the top of first.py, under the imports but above the variable assignments:
+---
+
+¡Increíble! 😲 ¿Te das cuenta de todo lo que acaba de ocurrir?
+
+* **AgentCore construyó un contenedor.**
+* **AgentCore lo desplegó en ECR.**
+* **AgentCore configuró automáticamente IAM.**
+* **AgentCore desplegó algo similar a App Runner.**
+* **AgentCore le envió un mensaje.**
+
+💥 ¡Es como una semana entera de trabajo, en un solo minuto!
+
+---
+
+### 🧠 Paso 6 - AHORA: Herramientas con *Strands*
+
+Agrega esto al inicio de tu archivo **`first.py`**, justo debajo de los *imports* pero antes de las asignaciones de variables:
+
 
 ```python
 @tool
@@ -127,23 +174,26 @@ def take_square_root(input_number: float):
     return str(math.sqrt(input_number))
 ```
 
-And change `agent = Agent()` to `agent = Agent(tools=[take_square_root])`
+Y cambia `agent = Agent()` por `agent = Agent(tools=[take_square_root])`
 
-And then:
+Y luego:
 
 `uv run agentcore launch`
 
 `uv run agentcore invoke '{"prompt": "Use your tool to calculate the square root of 1234567 to 3 decimal places"}'`
 
-That's tool use!!
+¡Eso es uso de herramientas! 🔧✨
 
-### Step 7 ###
+---
 
-And now - a new, more powerful agent - the looper!
+### 🌀 Paso 7
 
-First, delete `first.py` - we can only have 1 python module with an entrypoint.
+Y ahora… ¡un nuevo y más potente agente — *el looper*! 🔁
 
-Create `looper.py` with this contents:
+Primero, elimina el archivo **`first.py`**, ya que solo podemos tener **un módulo de Python con un punto de entrada (entrypoint)**.
+
+Crea un nuevo archivo llamado **`looper.py`** con el siguiente contenido:
+
 
 ```python
 from bedrock_agentcore import BedrockAgentCoreApp
@@ -225,19 +275,22 @@ if __name__ == "__main__":
 
 `uv run agentcore configure -e looper.py`
 
-Pick all the defaults. Then:
+Selecciona todos los valores por defecto y luego:
 
 `uv run agentcore launch`
 
-And then...
+Y finalmente...
 
 `uv run agentcore invoke '{"prompt": "A train leaves Boston at 2:00 pm traveling 60 mph. Another train leaves New York at 3:00 pm traveling 80 mph toward Boston. When do they meet?"}'`
 
-How cool is that?!
+¡Qué genial es eso! 🤩🚆
 
-### Step 8: Add Code Interpreter
+---
 
-Under the imports, add this:
+### 🧩 Paso 8: Añadir el **Code Interpreter**
+
+Debajo de los *imports*, añade este bloque de código:
+
 
 ```python
 from bedrock_agentcore.tools.code_interpreter_client import CodeInterpreter
@@ -257,7 +310,7 @@ def execute_python(code: str) -> str:
     return json.dumps(output[-1])
 ```
 
-Update the system prompt:
+Actualiza el prompt de sistema:
 
 ```python
 system_prompt = """
@@ -269,7 +322,7 @@ Now use the todo list tools, create a plan, carry out the steps, and reply with 
 """
 ```
 
-Update the print method to highlight coding tasks:
+Actualiza el método **`get_todo_report()`** para resaltar las tareas relacionadas con código de programación:
 
 ```python
 def get_todo_report() -> str:
@@ -285,29 +338,41 @@ def get_todo_report() -> str:
     return result
 ```
 
-And the final step - change the line that sets to tools to add the new tool:
+Y el paso final — cambia la línea que define las herramientas para añadir la nueva función:
 
-`tools = [create_todos, mark_complete, list_todos, execute_python]`
+```python
+tools = [create_todos, mark_complete, list_todos, execute_python]
+```
 
-And now:
+Ahora ejecuta:
 
-`uv run agentcore launch`
+```bash
+uv run agentcore launch
+```
 
-And then...
+Y luego…
 
-`uv run agentcore invoke '{"prompt": "A train leaves Boston at 2:00 pm traveling 60 mph. Another train leaves New York at 3:00 pm traveling 80 mph toward Boston. When do they meet?"}'`
+```bash
+uv run agentcore invoke '{"prompt": "A train leaves Boston at 2:00 pm traveling 60 mph. Another train leaves New York at 3:00 pm traveling 80 mph toward Boston. When do they meet?"}'
+```
 
-What fun!
+¡Qué divertido! 😄🚄
 
-### Step 9: Observability
+---
 
-1. Go back to AWS Console as your IAM user
-2. Go to the Amazon Bedrock AgentCore service
-3. Select Observability on the left
-4. Examine your agents, sessions and traces
-5. I'm intrigued to see how it retried with throttling issues, explaining why it was so slow..
+### 🔍 Paso 9: Observabilidad
 
-## AND THAT'S IT! Agent deployment in minutes.
+1. Vuelve a la **consola de AWS** con tu usuario IAM.
+2. Entra en el servicio **Amazon Bedrock AgentCore**.
+3. Selecciona **Observability** en el menú lateral.
+4. Examina tus **agentes, sesiones y trazas**.
+5. Fíjate en cómo el sistema realiza reintentos ante problemas de *throttling* — eso explica por qué algunas ejecuciones pueden parecer lentas.
 
-Your assignment: keep going! How about adding a NextJS frontend, add the other tool (browser automation), make this into a full personal Sidekick!
+---
 
+## ✅ ¡Y LISTO!
+
+Despliegue de agentes en cuestión de minutos. ⚡
+
+🎯 **Tu tarea:** ¡sigue adelante!
+Prueba a añadir un **frontend en Next.js**, incorpora la otra herramienta (automatización del navegador) y convierte todo esto en tu **asistente personal completo** 🤖💼
