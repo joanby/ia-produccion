@@ -1,64 +1,79 @@
-# INSTANT GRATIFICATION!
+# 🚀 ¡GRATIFICACIÓN INSTANTÁNEA!
 
-## Production Deployment in minutes
+## 🧠 Despliegue en producción en minutos
 
-This guide will walk you through deploying a simple FastAPI application to Vercel in under 10 minutes.
+Esta guía te mostrará cómo desplegar una aplicación sencilla de **FastAPI** en **Vercel** en menos de **10 minutos**. ⚡
 
-## Step 1: Sign Up for Vercel
+---
 
-1. Open your web browser and navigate to [https://vercel.com](https://vercel.com)
-2. Click the **Sign Up** button in the top right corner
-3. Select **Hobby** (for personal projects)
-4. Enter your name
-5. Choose one of the following sign-up methods:
-   - **GitHub** (recommended) - Click "Continue with GitHub" and authorize Vercel
-   - **GitLab** - Click "Continue with GitLab" and authorize Vercel
-   - **Bitbucket** - Click "Continue with Bitbucket" and authorize Vercel
-   - **Email** - Enter your email address and follow the verification steps
-6. Complete the onboarding (you can skip team creation)
+## 🪄 Paso 1: Crea tu cuenta en Vercel
 
-## Step 2: Install Cursor IDE
+1. Abre tu navegador y entra en 👉 [https://vercel.com](https://vercel.com)
+2. Haz clic en **Sign Up** (arriba a la derecha)
+3. Selecciona el plan **Hobby** (para proyectos personales)
+4. Escribe tu nombre
+5. Elige un método para registrarte:
 
-> Note: You can use a different IDE if you prefer (VS Code, PyCharm, etc.), but these instructions assume you're using Cursor.
+   * 💻 **GitHub** (recomendado) → “Continue with GitHub” y autoriza Vercel
+   * 🧩 **GitLab** → “Continue with GitLab” y autoriza
+   * 📦 **Bitbucket** → “Continue with Bitbucket” y autoriza
+   * 📧 **Email** → Introduce tu correo y sigue los pasos de verificación
+6. Completa el proceso de bienvenida (puedes omitir la creación de equipo)
 
-**Windows:**
-1. Visit [https://cursor.com](https://cursor.com)
-2. Click "Download for Windows"
-3. Run the downloaded `.exe` installer
-4. Follow the installation wizard
-5. Launch Cursor from your Start Menu or Desktop
+---
 
-**Mac:**
-1. Visit [https://cursor.com](https://cursor.com)
-2. Click "Download for Mac"
-3. Open the downloaded `.dmg` file
-4. Drag Cursor to your Applications folder
-5. Launch Cursor from Applications or Spotlight (Cmd+Space, type "Cursor")
+## 💻 Paso 2: Instala el IDE **Cursor**
 
-**Linux:**
-1. Visit [https://cursor.com](https://cursor.com)
-2. Click "Download for Linux"
-3. Extract the `.tar.gz` file:
+> 💡 Nota: puedes usar otro IDE como VS Code o PyCharm, pero estas instrucciones están pensadas para **Cursor**.
+
+### 🪟 En Windows
+
+1. Visita [https://cursor.com](https://cursor.com)
+2. Haz clic en **Download for Windows**
+3. Ejecuta el instalador `.exe` descargado
+4. Sigue los pasos del asistente de instalación
+5. Abre **Cursor** desde el menú Inicio o el escritorio
+
+### 🍎 En Mac
+
+1. Visita [https://cursor.com](https://cursor.com)
+2. Haz clic en **Download for Mac**
+3. Abre el archivo `.dmg` descargado
+4. Arrastra **Cursor** a la carpeta **Applications**
+5. Lanza la app desde **Applications** o con **Spotlight** (`Cmd + Space` → “Cursor”)
+
+### 🐧 En Linux
+
+1. Visita [https://cursor.com](https://cursor.com)
+2. Haz clic en **Download for Linux**
+3. Extrae el archivo `.tar.gz`:
+
    ```bash
    tar -xzf cursor-*.tar.gz
    ```
-4. Move to `/opt` and create a symlink:
+4. Muévelo a `/opt` y crea un enlace simbólico:
+
    ```bash
    sudo mv cursor /opt/
    sudo ln -s /opt/cursor/cursor /usr/local/bin/cursor
    ```
-5. Launch by typing `cursor` in terminal
+5. Ejecuta el comando `cursor` en la terminal para iniciarlo
 
-### Create Your Project Folder
+---
 
-1. Open Cursor
-2. **Windows/Linux:** Click File → Open Folder → Create a new folder called "instant"
-3. **Mac:** Click File → Open → Create a new folder called "instant"
-4. Select and open the "instant" folder
+### 📁 Crea tu carpeta de proyecto
 
-## Step 3: Create Your FastAPI Application
+1. Abre **Cursor**
+2. **Windows/Linux:** Ve a *File → Open Folder →* crea una nueva carpeta llamada **instant**
+3. **Mac:** *File → Open →* crea una carpeta llamada **instant**
+4. Abre la carpeta **instant** en el IDE
 
-In Cursor, create a new file called `instant.py` with the following content:
+---
+
+## ⚙️ Paso 3: Crea tu aplicación **FastAPI**
+
+En **Cursor**, crea un nuevo archivo llamado `instant.py` con el siguiente contenido:
+
 
 ```python
 from fastapi import FastAPI
@@ -69,23 +84,30 @@ app = FastAPI()
 def instant():
     return "Live from production!"
 ```
+# ⚡ ¡DESPLIEGUE INSTANTÁNEO!
 
-Save the file (Ctrl+S on Windows/Linux, Cmd+S on Mac).
+## 🚀 Despliegue en producción en minutos
 
-## Step 4: Create Requirements File
+Esta guía te mostrará cómo desplegar una aplicación **FastAPI** en **Vercel** en menos de **10 minutos**. 🧠✨
 
-Create a new file called `requirements.txt` with the following content:
+---
+
+## 💾 Paso 4: Crea el archivo de dependencias
+
+Crea un nuevo archivo llamado `requirements.txt` con el siguiente contenido:
 
 ```
 fastapi
 uvicorn
 ```
 
-Save the file.
+💡 **Guarda el archivo** (`Ctrl + S` en Windows/Linux, `Cmd + S` en Mac).
 
-## Step 5: Create Vercel Configuration
+---
 
-Create a new file called `vercel.json` with the following content:
+## ⚙️ Paso 5: Crea la configuración de Vercel
+
+Crea un nuevo archivo llamado `vercel.json` con este contenido:
 
 ```json
 {
@@ -104,102 +126,141 @@ Create a new file called `vercel.json` with the following content:
 }
 ```
 
-Save the file.
+Guarda el archivo.
 
-## Step 6: Install Node.js
+---
 
-Node.js is required for the Vercel CLI.
+## 🟢 Paso 6: Instala Node.js
 
-1. Visit the official Node.js download page: [https://nodejs.org/en/download](https://nodejs.org/en/download)
+Vercel CLI requiere **Node.js**.
 
-2. Choose your preferred installation method:
-   - **Direct Download:** Download the installer for your operating system
-   - **Package Manager:** Use the package manager for your platform (Homebrew for Mac, Chocolatey for Windows, etc.)
-   - **Version Manager (recommended):** Use nvm, fnm, or volta for easy version management
+1. Ve a la página oficial de descargas: 👉 [https://nodejs.org/en/download](https://nodejs.org/en/download)
+2. Elige tu método de instalación preferido:
 
-3. After installation, open a **new** terminal window
+   * 📦 **Descarga directa:** instala el ejecutable correspondiente a tu sistema operativo
+   * 🍺 **Gestor de paquetes:** Homebrew (Mac), Chocolatey (Windows), apt/yum (Linux)
+   * 🌀 **Gestor de versiones (recomendado):** nvm, fnm o volta para manejar versiones fácilmente
+3. Una vez instalado, abre una **nueva terminal**
+4. Verifica la instalación:
 
-4. Verify installation:
    ```bash
    node --version
    npm --version
    ```
 
-Both commands should return version numbers if installed correctly.
+   Si ambos comandos devuelven un número de versión, todo está correcto ✅
 
-## Step 7: Deploy to Vercel
+---
 
-### Open Terminal in Cursor
+## 🌐 Paso 7: Despliega tu API en Vercel
 
-- Click Terminal → New Terminal (or press Ctrl+\` on Windows/Linux, Cmd+\` on Mac)
+### Abre la terminal en Cursor
 
-**Make sure you're in your "instant" project folder** - you should see your three files (instant.py, requirements.txt, vercel.json) when you list files.
+* Ve a *Terminal → New Terminal* (o usa `Ctrl + \`` en Windows/Linux, `Cmd + `` en Mac)
 
-### Install Vercel CLI and Deploy
+💡 Asegúrate de estar dentro de tu carpeta de proyecto **instant**, y de que estén los tres archivos:
+`instant.py`, `requirements.txt`, y `vercel.json`.
 
-1. Install Vercel CLI globally:
+---
+
+### 📦 Instala Vercel CLI y despliega
+
+1. Instala la CLI de Vercel globalmente:
+
    ```bash
    npm install -g vercel
    ```
 
-2. Login to Vercel:
+2. Inicia sesión en Vercel:
+
    ```bash
    vercel login
    ```
-   - Enter the email address you used to sign up for Vercel
-   - Check your email for a verification link and click it
-   - Return to the terminal - it should confirm you're logged in
 
-3. Deploy to Vercel (development):
+   * Introduce el correo con el que te registraste
+   * Abre el enlace de verificación en tu email
+   * Vuelve a la terminal: debería aparecer “Logged in as…”
+
+3. Despliega tu aplicación (modo desarrollo):
+
    ```bash
    vercel .
    ```
-   - When prompted "Set up and deploy?"  → Press Enter (Yes)
-   - "Which scope?"  → Select your personal account
-   - "Link to existing project?"  → Type `n` and press Enter (No)
-   - "What's your project's name?"  → Type `instant` and press Enter
-   - "In which directory is your code located?"  → Press Enter (current directory)
-   - Wait for deployment to complete (usually 30-60 seconds)
-   - You'll see a URL like `https://instant-xxxxxx.vercel.app`
 
-4. Test your development deployment:
-   - Click the URL provided (or copy and paste into browser)
-   - You should see: **"Live from production!"**
+   Durante la configuración:
 
+   * “Set up and deploy?” → **Enter**
+   * “Which scope?” → Selecciona tu cuenta personal
+   * “Link to existing project?” → Escribe **n**
+   * “What’s your project’s name?” → Escribe **instant**
+   * “In which directory is your code located?” → **Enter**
+     ⏳ Espera unos segundos (30–60s) hasta que se complete el despliegue
+     Obtendrás una URL como:
+     👉 `https://instant-xxxxxx.vercel.app`
 
-## Congratulations! 🎉
+4. Prueba tu API:
+   Abre el enlace en tu navegador y deberías ver:
+   **"Live from production!"** 🎉
 
-You've successfully deployed your first API to production! Your API is now:
-- ✅ Live on the internet
-- ✅ Automatically scaled
-- ✅ Secured with HTTPS
-- ✅ Accessible from anywhere in the world
+---
 
-### What You've Learned:
-- How to create a simple FastAPI application
-- How to configure a project for Vercel deployment
-- How to use the Vercel CLI for deployment
+## 🏁 ¡Felicidades! 🎉
 
-### Next Steps:
-- Try modifying the message in `instant.py` and redeploying
-- Add more API endpoints
-- Explore Vercel's dashboard at [https://vercel.com/dashboard](https://vercel.com/dashboard)
+Has desplegado tu primera API en producción. Tu API ahora está:
 
-## Troubleshooting
+* ✅ En línea y accesible desde cualquier parte del mundo
+* 🔒 Protegida con HTTPS
+* ⚙️ Escalable automáticamente
+* 💡 Sin necesidad de configurar servidores
 
-### "vercel: command not found"
-- Make sure you opened a **new** terminal after installing Node.js
-- Try running `npm install -g vercel` again
+---
 
-### "Python version not supported"
-- Vercel supports Python 3.9, 3.10, 3.11, and 3.12
-- The default should work, but if you have issues, add a `runtime.txt` file with: `python-3.12`
+## 🧭 Lo que has aprendido
 
-### Deployment fails
-- Check that all three files (instant.py, requirements.txt, vercel.json) are in your project folder
-- Make sure you're in the correct directory when running `vercel`
-- Ensure your vercel.json has the exact JSON structure shown above
+* Cómo crear una aplicación básica con **FastAPI**
+* Cómo preparar un proyecto para **Vercel**
+* Cómo desplegar usando la **Vercel CLI**
 
-### Need Help?
-- Check Vercel's documentation: [https://vercel.com/docs](https://vercel.com/docs)
-- Ask in class or post in the course forum
+---
+
+## 🚀 Próximos pasos
+
+* Cambia el mensaje en `instant.py` y vuelve a desplegar
+* Añade nuevos endpoints a tu API
+* Explora tu panel de control en 👉 [https://vercel.com/dashboard](https://vercel.com/dashboard)
+
+---
+
+## 🧩 Solución de problemas
+
+### ❌ “vercel: command not found”
+
+* Asegúrate de haber abierto una nueva terminal tras instalar Node.js
+* Prueba a reinstalar la CLI:
+
+  ```bash
+  npm install -g vercel
+  ```
+
+### ⚠️ “Python version not supported”
+
+* Vercel soporta Python **3.9, 3.10, 3.11 y 3.12**
+* Si da error, añade un archivo `runtime.txt` con:
+
+  ```
+  python-3.12
+  ```
+
+### ❗ Error en el despliegue
+
+* Verifica que los tres archivos (`instant.py`, `requirements.txt`, `vercel.json`) estén en el mismo directorio
+* Comprueba que estás ejecutando `vercel` dentro de esa carpeta
+* Asegúrate de que tu `vercel.json` esté exactamente igual que el mostrado
+
+---
+
+### 🆘 ¿Necesitas ayuda?
+
+* Consulta la documentación oficial de Vercel:
+  👉 [https://vercel.com/docs](https://vercel.com/docs)
+* Pregunta en clase o en el foro del curso 💬
