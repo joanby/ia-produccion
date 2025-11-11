@@ -1,80 +1,79 @@
-# Day 3: Adding User Authentication with Clerk
+# Día 3: Añadir autenticación de usuarios con Clerk
 
-## Transform Your SaaS with Professional Authentication
+## Transforma tu SaaS con autenticación profesional
 
-Today you'll add enterprise-grade authentication to your Business Idea Generator, allowing users to sign in with Google, GitHub, and other providers. This transforms your app from a demo into a real SaaS product.
+Hoy añadirás autenticación de nivel empresarial a tu Generador de Ideas de Negocio, permitiendo que las personas inicien sesión con Google, GitHub y otros proveedores. Esto convierte tu app de un demo en un verdadero producto SaaS.
 
-## What You'll Build
+## Lo que construirás
 
-An authenticated version of your app that:
-- Requires users to sign in before accessing the idea generator
-- Supports multiple authentication providers (Google, GitHub, Email)
-- Passes secure JWT tokens to your backend
-- Verifies user identity on every API request
-- Works seamlessly with Next.js Pages Router
+Una versión autenticada de tu app que:
+- Exige que las personas inicien sesión antes de acceder al generador de ideas
+- Admite múltiples proveedores de autenticación (Google, GitHub, Email)
+- Envía tokens JWT seguros a tu backend
+- Verifica la identidad del usuario en cada petición a la API
+- Funciona sin fricción con el Pages Router de Next.js
 
-## Prerequisites
+## Requisitos previos
 
-- Completed Day 2 (working Business Idea Generator)
-- Your project deployed to Vercel
+- Haber completado el Día 2 (Generador de Ideas de Negocio funcionando)
+- Tu proyecto desplegado en Vercel
 
-## IMPORTANT Note - added since the videos
+## Nota IMPORTANTE - añadida después de los videos
 
-In some situations, if your app takes longer than 60 seconds to respond to a request, it's possible that you experience a Timeout error. You'll see in the browser's Javascript Console that you're getting a 403 error. The fix for this is in community_contributions explained in the file jwt_token_60s_fix.md. Look out for this 403 timeout after 60 seconds, and if it happens, please see the fix. Thanks!
+En algunas situaciones, si tu app tarda más de 60 segundos en responder a una solicitud, es posible que veas un error de Timeout. En la consola de JavaScript del navegador aparecerá un error 403. El arreglo para esto está en community_contributions, explicado en el archivo jwt_token_60s_fix.md. Mantente atento a ese 403 tras 60 segundos y, si sucede, consulta la solución. ¡Gracias!
 
+## Parte 1: Autenticación de usuarios
 
-## Part 1: User Authentication
+### Paso 1: Crea tu cuenta de Clerk
 
-### Step 1: Create Your Clerk Account
+1. Visita [clerk.com](https://clerk.com) y haz clic en **Sign Up**
+2. Crea tu cuenta usando Google (o el método que prefieras)
+3. Se te llevará a **Create Application** (o haz clic en "Create Application" si regresas más tarde)
 
-1. Visit [clerk.com](https://clerk.com) and click **Sign Up**
-2. Create your account using Google auth (or your preferred method)
-3. You'll be taken to **Create Application** (or click "Create Application" if returning)
+### Paso 2: Configura tu aplicación de Clerk
 
-### Step 2: Configure Your Clerk Application
-
-1. **Application name:** SaaS
-2. **Sign-in options:** Enable these providers:
+1. **Nombre de la aplicación:** SaaS
+2. **Opciones de inicio de sesión:** habilita estos proveedores:
    - Email
    - Google  
    - GitHub
-   - Apple (optional)
-3. Click **Create Application**
+   - Apple (opcional)
+3. Haz clic en **Create Application**
 
-You'll see the Clerk dashboard with your API keys displayed.
+Verás el panel de Clerk con tus claves API.
 
-### Step 3: Install Clerk Dependencies
+### Paso 3: Instala las dependencias de Clerk
 
-In your terminal, install the Clerk SDK:
+En tu terminal, instala el SDK de Clerk:
 
 ```bash
 npm install @clerk/nextjs
 ```
 
-For handling streaming with authentication, also install:
+Para manejar streaming con autenticación, instala también:
 
 ```bash
 npm install @microsoft/fetch-event-source
 ```
 
-### Step 4: Configure Environment Variables
+### Paso 4: Configura las variables de entorno
 
-Create a `.env.local` file in your project root:
+Crea un archivo `.env.local` en la raíz de tu proyecto:
 
 ```bash
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key_here
 CLERK_SECRET_KEY=your_secret_key_here
 ```
 
-**Important:** Copy these values from the Clerk dashboard (they're displayed after creating your application on the configure screen).
+**Importante:** copia estos valores desde el panel de Clerk (aparecen después de crear tu aplicación en la pantalla de configuración).
 
-### Add to .gitignore
+### Añade a .gitignore
 
-Open `.gitignore` in Cursor and add `.env.local` on a new line.
+Abre `.gitignore` en Cursor y añade `.env.local` en una nueva línea.
 
-### Step 5: Add Clerk Provider to Your App
+### Paso 5: Añade el proveedor de Clerk a tu app
 
-With Pages Router, we need to wrap our application with the Clerk provider. Update `pages/_app.tsx`:
+Con Pages Router necesitamos envolver nuestra aplicación con el proveedor de Clerk. Actualiza `pages/_app.tsx`:
 
 ```typescript
 import { ClerkProvider } from '@clerk/nextjs';
@@ -90,11 +89,11 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 }
 ```
 
-### Step 6: Create the Product Page
+### Paso 6: Crea la página del producto
 
-Move your business idea generator to a protected route. Since we're using client-side authentication, we'll protect this route using Clerk's built-in components.
+Mueve tu generador de ideas a una ruta protegida. Como estamos usando autenticación en el cliente, protegeremos esa ruta con los componentes incorporados de Clerk.
 
-Create `pages/product.tsx`:
+Crea `pages/product.tsx`:
 
 ```typescript
 "use client"
@@ -172,9 +171,9 @@ export default function Product() {
 }
 ```
 
-### Step 7: Create the Landing Page
+### Paso 7: Crea la landing page
 
-Update `pages/index.tsx` to be your new landing page with sign-in:
+Actualiza `pages/index.tsx` para que sea tu nueva landing con inicio de sesión:
 
 ```typescript
 "use client"
@@ -245,24 +244,24 @@ export default function Home() {
 }
 ```
 
-### Step 8: Configure Backend Authentication
+### Paso 8: Configura la autenticación del backend
 
-First, get your JWKS URL from Clerk:
-1. Go to your Clerk Dashboard
-2. Click **Configure** (top nav)
-3. Click **API Keys** (side nav)  
-4. Find **JWKS URL** and copy it
+Primero, obtén tu URL JWKS desde Clerk:
+1. Ve a tu panel de Clerk
+2. Haz clic en **Configure** (en la barra superior)
+3. Haz clic en **API Keys** (en la barra lateral)  
+4. Busca **JWKS URL** y cópiala
 
-**What is JWKS?** The JWKS (JSON Web Key Set) URL is a public endpoint that contains Clerk's public keys. When a user signs in, Clerk creates a JWT (JSON Web Token) - a digitally signed token that proves the user's identity. Your Python backend uses the JWKS URL to fetch Clerk's public keys and verify that incoming JWT tokens are genuine and haven't been tampered with. This allows secure authentication without your backend needing to contact Clerk for every request - it can verify tokens independently using cryptographic signatures.
+**¿Qué es JWKS?** La URL JWKS (JSON Web Key Set) es un endpoint público que contiene las claves públicas de Clerk. Cuando una persona inicia sesión, Clerk crea un JWT (JSON Web Token), un token firmado digitalmente que prueba la identidad del usuario. Tu backend en Python usa la URL JWKS para obtener las claves públicas de Clerk y verificar que los tokens JWT entrantes sean genuinos y no hayan sido manipulados. Esto permite una autenticación segura sin que tu backend tenga que contactar a Clerk en cada solicitud; puede verificar los tokens de forma independiente usando firmas criptográficas.
 
-Add to `.env.local`:
+Añade a `.env.local`:
 ```bash
 CLERK_JWKS_URL=your_jwks_url_here
 ```
 
-### Step 9: Update Backend Dependencies
+### Paso 9: Actualiza las dependencias del backend
 
-Add the Clerk authentication library to `requirements.txt`:
+Añade la librería de autenticación de Clerk a `requirements.txt`:
 
 ```
 fastapi
@@ -271,9 +270,9 @@ openai
 fastapi-clerk-auth
 ```
 
-### Step 10: Update the API with Authentication
+### Paso 10: Actualiza la API con autenticación
 
-Replace `api/index.py` with:
+Reemplaza `api/index.py` con:
 
 ```python
 import os
@@ -313,103 +312,103 @@ def idea(creds: HTTPAuthorizationCredentials = Depends(clerk_guard)):
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 ```
 
-### Step 11: Add Environment Variables to Vercel
+### Paso 11: Añade las variables de entorno en Vercel
 
-Add your Clerk keys to Vercel:
+Añade tus claves de Clerk a Vercel:
 
 ```bash
 vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ```
-Paste your publishable key and select all environments.
+Pega tu publishable key y selecciona todos los entornos.
 
 ```bash
 vercel env add CLERK_SECRET_KEY
 ```
-Paste your secret key and select all environments.
+Pega tu secret key y selecciona todos los entornos.
 
 ```bash
 vercel env add CLERK_JWKS_URL
 ```
-Paste your JWKS URL and select all environments.
+Pega tu JWKS URL y selecciona todos los entornos.
 
-### Step 12: Test Locally
+### Paso 12: Prueba en local
 
-Test your authentication locally:
+Prueba tu autenticación en local:
 
 ```bash
 vercel dev
 ```
 
-**Note:** The Python backend won't work locally with `vercel dev`, but the authentication flow will work perfectly! You'll be able to sign in, sign out, and see the user interface.
+**Nota:** el backend en Python no funcionará localmente con `vercel dev`, pero el flujo de autenticación sí funcionará perfecto. Podrás iniciar sesión, salir y ver la interfaz de usuario.
 
-Visit `http://localhost:3000` and:
-1. Click "Sign In"
-2. Create an account or sign in with Google/GitHub
-3. You'll be redirected to the landing page, now authenticated
-4. Click "Go to App" to access the protected idea generator
+Visita `http://localhost:3000` y:
+1. Haz clic en "Sign In"
+2. Crea una cuenta o inicia sesión con Google/GitHub
+3. Serás redirigido a la landing ya autenticada
+4. Haz clic en "Go to App" para acceder al generador protegido
 
-### Step 13: Deploy to Production
+### Paso 13: Despliega a producción
 
-Deploy your authenticated app:
+Despliega tu app autenticada:
 
 ```bash
 vercel --prod
 ```
 
-Visit your production URL and test the complete authentication flow!
+Visita tu URL de producción y prueba todo el flujo de autenticación.
 
-NOTE - if you hit a problem with jwt token expiration, please see this [fix contributed by Artur P](../community_contributions/arturp_jwt_token_fix_notes.md)
+NOTA: si te aparece un problema con la expiración del token JWT, revisa este [arreglo aportado por Artur P](../community_contributions/arturp_jwt_token_fix_notes.md)
 
-## What's Happening?
+## ¿Qué está pasando?
 
-Your app now has:
-- **Secure authentication**: Users must sign in to access your product
-- **Client-side route protection**: Unauthenticated users are redirected from protected pages
-- **JWT verification**: Every API request is verified using cryptographic signatures
-- **User identification**: The backend knows which user is making each request
-- **Professional UX**: Modal sign-in, user profile management, and smooth redirects
-- **Multiple providers**: Users can choose their preferred sign-in method
+Tu app ahora tiene:
+- **Autenticación segura**: las personas deben iniciar sesión para usar tu producto
+- **Protección de rutas en el cliente**: quienes no estén autenticados son redirigidos desde las páginas protegidas
+- **Verificación de JWT**: cada petición a la API se verifica con firmas criptográficas
+- **Identificación de usuarios**: el backend sabe quién hace cada solicitud
+- **Experiencia profesional**: inicio de sesión modal, gestión de perfil y redirecciones fluidas
+- **Múltiples proveedores**: cada usuario elige su método de inicio de sesión favorito
 
-## Security Architecture
+## Arquitectura de seguridad
 
-Since we're using client-side Next.js with a separate Python backend:
+Como usamos Next.js del lado del cliente con un backend en Python separado:
 
-1. **Frontend (Browser)**: User signs in with Clerk → receives session token
-2. **Client-Side Protection**: Protected routes check authentication status and redirect if needed
-3. **API Request**: Browser sends JWT token directly to Python backend with each request
-4. **Backend Verification**: FastAPI verifies the JWT using Clerk's public keys (JWKS)
-5. **User Context**: Backend can access user ID and metadata from verified token
+1. **Frontend (navegador)**: la persona inicia sesión con Clerk → recibe un token de sesión
+2. **Protección del lado del cliente**: las rutas protegidas verifican el estado de autenticación y redirigen si es necesario
+3. **Petición a la API**: el navegador envía el token JWT directamente al backend en Python con cada solicitud
+4. **Verificación en el backend**: FastAPI verifica el JWT usando las claves públicas (JWKS) de Clerk
+5. **Contexto del usuario**: el backend puede acceder al ID y metadatos del usuario a partir del token verificado
 
-This architecture keeps your Next.js deployment simple (static/client-side only) while maintaining secure API authentication.
+Esta arquitectura mantiene tu despliegue de Next.js simple (solo estático/cliente) y, aun así, conserva una autenticación segura para tu API.
 
-## Troubleshooting
+## Resolución de problemas
 
-### "Unauthorized" errors
-- Check that all three environment variables are set correctly in Vercel
-- Ensure the JWKS URL is copied correctly from Clerk
-- Verify you're signed in before accessing `/product`
+### Errores "Unauthorized"
+- Revisa que las tres variables de entorno estén configuradas correctamente en Vercel
+- Asegúrate de que la URL JWKS esté bien copiada desde Clerk
+- Verifica que hayas iniciado sesión antes de acceder a `/product`
 
-### Sign-in modal not appearing
-- Check that `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` starts with `pk_`
-- Ensure you've wrapped your app with `ClerkProvider`
-- Clear browser cache and cookies
+### El modal de inicio de sesión no aparece
+- Comprueba que `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` comience con `pk_`
+- Asegúrate de haber envuelto tu app con `ClerkProvider`
+- Borra caché y cookies del navegador
 
-### API not authenticating
-- Verify `CLERK_JWKS_URL` is set in your environment
-- Check that `fastapi-clerk-auth` is in requirements.txt
-- Ensure the JWT token is being sent in the Authorization header
+### La API no autentica
+- Verifica que `CLERK_JWKS_URL` esté en tu entorno
+- Revisa que `fastapi-clerk-auth` esté en requirements.txt
+- Comprueba que el token JWT se envía en el encabezado Authorization
 
-### Local development issues
-- Make sure `.env.local` has all three Clerk variables
-- Restart your dev server after adding environment variables
-- Try clearing Next.js cache: `rm -rf .next`
+### Problemas en desarrollo local
+- Asegúrate de que `.env.local` tenga las tres variables de Clerk
+- Reinicia tu servidor de desarrollo tras añadir las variables
+- Intenta limpiar la caché de Next.js: `rm -rf .next`
 
-## Next Steps
+## Próximos pasos
 
-Congratulations! You've added professional authentication to your SaaS. In Part 2, we'll add:
-- Subscription tiers with Stripe
-- Usage limits based on subscription level
-- Payment processing
-- Customer portal for managing subscriptions
+¡Felicidades! Añadiste autenticación profesional a tu SaaS. En la Parte 2 añadiremos:
+- Planes de suscripción con Stripe
+- Límites de uso según el nivel de suscripción
+- Procesamiento de pagos
+- Portal de clientes para gestionar sus suscripciones
 
-Your app is now a real SaaS product with secure user authentication!
+¡Tu app ahora es un producto SaaS real con autenticación segura de usuarios!

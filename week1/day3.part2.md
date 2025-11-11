@@ -1,63 +1,63 @@
-# Day 3 Part 2: Adding Subscriptions with Clerk Billing
+# Día 3 Parte 2: Añadir suscripciones con Clerk Billing
 
-## Transform Your SaaS with Subscription Management
+## Transforma tu SaaS con gestión de suscripciones
 
-Now let's add subscription tiers to your Business Idea Generator, turning it into a full-fledged SaaS with payment processing and subscription management built-in.
+Ahora añadiremos niveles de suscripción a tu Generador de Ideas de Negocio, convirtiéndolo en un SaaS completo con procesamiento de pagos y gestión de suscripciones integrada.
 
-## What You'll Build
+## Lo que construirás
 
-An enhanced version of your app that:
-- Requires a paid subscription to access the idea generator
-- Shows a beautiful pricing table to non-subscribers
-- Handles payment processing through Clerk Billing
-- Manages subscription status automatically
-- Provides a user menu with billing management options
+Una versión mejorada de tu app que:
+- Exige una suscripción de pago para acceder al generador de ideas
+- Muestra una tabla de precios atractiva a quienes no están suscritos
+- Gestiona el procesamiento de pagos mediante Clerk Billing
+- Administra el estado de suscripción automáticamente
+- Ofrece un menú de usuario con opciones de facturación
 
-## Prerequisites
+## Requisitos previos
 
-- Completed Day 3 Part 1 (authentication working)
-- Your app deployed to Vercel
+- Haber completado el Día 3 Parte 1 (autenticación funcionando)
+- Tu app desplegada en Vercel
 
-## Step 1: Enable Clerk Billing
+## Paso 1: Habilita Clerk Billing
 
-### Navigate to Clerk Dashboard
+### Navega al panel de Clerk
 
-1. Go to your [Clerk Dashboard](https://dashboard.clerk.com)
-2. Select your **SaaS** application
-3. Click **Configure** in the top navigation
-4. Click **Subscription Plans** in the left sidebar
-5. Click **Get Started** if this is your first time
+1. Ve a tu [Clerk Dashboard](https://dashboard.clerk.com)
+2. Selecciona tu aplicación **SaaS**
+3. Haz clic en **Configure** en la navegación superior
+4. Haz clic en **Subscription Plans** en la barra lateral izquierda
+5. Pulsa **Get Started** si es la primera vez
 
-### Enable Billing
+### Activa la facturación
 
-1. Click **Enable Billing** if prompted
-2. Accept the terms if prompted
-3. You'll see the Subscription Plans page
+1. Pulsa **Enable Billing** si se te solicita
+2. Acepta los términos si aparece el aviso
+3. Verás la página de Subscription Plans
 
-## Step 2: Create Your Subscription Plan
+## Paso 2: Crea tu plan de suscripción
 
-### Configure the Plan
+### Configura el plan
 
-1. Click **Create Plan**
-2. Fill in the details:
+1. Haz clic en **Create Plan**
+2. Completa los detalles:
    - **Name:** Premium Subscription
-   - **Key:** `premium_subscription` (this is important - copy it exactly)
-   - **Price:** $10.00 monthly (or your preferred price)
+   - **Key:** `premium_subscription` (es importante; cópialo exactamente)
+   - **Price:** $10.00 mensual (o el precio que prefieras)
    - **Description:** Unlimited AI-powered business ideas
-3. Optional: Add an annual discount
-   - Toggle on **Annual billing**
-   - Set annual price (e.g., $100/year for a discount)
-4. Click **Save**
+3. Opcional: añade un descuento anual
+   - Activa **Annual billing**
+   - Establece el precio anual (ej., $100/año como descuento)
+4. Haz clic en **Save**
 
-### Copy the Plan ID
+### Copia el ID del plan
 
-After creating the plan, you'll see a **Plan ID** in the top right of the plan card (it looks like `plan_...`). You'll need this for testing, but Clerk handles it automatically in production.
+Después de crear el plan verás un **Plan ID** en la esquina superior derecha de la tarjeta (algo como `plan_...`). Lo necesitas para pruebas, aunque Clerk lo maneja automáticamente en producción.
 
-## Step 3: Update Your Product Page
+## Paso 3: Actualiza tu página de producto
 
-Since we're using Pages Router with client-side components, we need to protect our product route with the subscription check.
+Como usamos Pages Router con componentes del lado del cliente, necesitamos proteger la ruta del producto con una verificación de suscripción.
 
-Update `pages/product.tsx`:
+Actualiza `pages/product.tsx`:
 
 ```typescript
 "use client"
@@ -167,11 +167,11 @@ export default function Product() {
 }
 ```
 
-## Step 4: Update Your Landing Page
+## Paso 4: Actualiza tu landing page
 
-Let's update the landing page to better reflect the subscription model.
+Actualicemos la landing para que refleje mejor el modelo de suscripción.
 
-Update `pages/index.tsx`:
+Actualiza `pages/index.tsx`:
 
 ```typescript
 "use client"
@@ -253,90 +253,90 @@ export default function Home() {
 }
 ```
 
-## Step 5: Configure Billing Provider (Optional)
+## Paso 5: Configura el proveedor de pagos (opcional)
 
-Clerk comes with a built-in payment gateway that's ready to use immediately:
+Clerk incluye un gateway de pagos listo para usarse de inmediato:
 
-1. In Clerk Dashboard → **Configure** → **Billing** → **Settings** (in the left sidebar)
-2. By default, **Clerk payment gateway** is selected:
-   - "Our zero-config payment gateway. Ready to process test payments immediately."
-   - This works great for testing and development
-3. **Optional:** You can switch to Stripe if you prefer:
-   - Select **Stripe** instead
-   - Follow Clerk's setup wizard to connect your Stripe account
+1. En el panel de Clerk → **Configure** → **Billing** → **Settings** (barra lateral izquierda)
+2. De forma predeterminada está seleccionado **Clerk payment gateway**:
+   - "Nuestro gateway de cero configuración. Listo para procesar pagos de prueba inmediatamente."
+   - Perfecto para pruebas y desarrollo
+3. **Opcional:** puedes cambiar a Stripe si lo prefieres:
+   - Selecciona **Stripe**
+   - Sigue el asistente de Clerk para conectar tu cuenta de Stripe
 
-**Note:** The Clerk payment gateway is perfect for getting started - it handles test payments immediately without any additional setup.
+**Nota:** el gateway de Clerk es ideal para comenzar: procesa pagos de prueba al instante sin configuración adicional.
 
-## Step 6: Test Your Subscription Flow
+## Paso 6: Prueba el flujo de suscripción
 
-Deploy your updated application:
+Despliega tu aplicación actualizada:
 
 ```bash
 vercel --prod
 ```
 
-### Testing the Flow
+### Probando el flujo
 
-1. Visit your production URL
-2. Sign in (or create a new account)
-3. Click "Go to App" or "Access Premium Features"
-4. You'll see the pricing table since you don't have a subscription
-5. Click **Subscribe** on the Premium plan
-6. If you haven't connected a payment provider, Clerk will simulate the subscription
-7. After subscribing, you'll have access to the idea generator
+1. Visita tu URL de producción
+2. Inicia sesión (o crea una cuenta nueva)
+3. Haz clic en "Go to App" o "Access Premium Features"
+4. Verás la tabla de precios porque aún no tienes suscripción
+5. Haz clic en **Subscribe** en el plan Premium
+6. Si no conectaste un proveedor de pagos, Clerk simulará la suscripción
+7. Después de suscribirte tendrás acceso al generador de ideas
 
-### Managing Subscriptions
+### Gestión de suscripciones
 
-Users can manage their subscriptions through the UserButton menu:
-1. Click on their profile picture (UserButton)
-2. Select **Manage account**
-3. Navigate to **Subscriptions**
-4. View or cancel their subscription
+Las personas pueden administrar su suscripción desde el menú del UserButton:
+1. Haz clic en su foto de perfil (UserButton)
+2. Selecciona **Manage account**
+3. Ve a **Subscriptions**
+4. Consulta o cancela la suscripción
 
-## What's Happening?
+## ¿Qué está pasando?
 
-Your app now has:
-- **Subscription Gate**: Users must have an active subscription to access the product
-- **Pricing Table**: Beautiful, Clerk-managed pricing display
-- **Payment Processing**: Handled entirely by Clerk (with Stripe integration if configured)
-- **User Management**: Subscription status in the UserButton menu
-- **Automatic Enforcement**: Clerk automatically checks subscription status
+Tu app ahora cuenta con:
+- **Filtro por suscripción**: hace falta una suscripción activa para usar el producto
+- **Tabla de precios**: diseño atractivo gestionado por Clerk
+- **Procesamiento de pagos**: manejado completamente por Clerk (o Stripe si lo conectas)
+- **Gestión de usuarios**: estado de suscripción visible en el UserButton
+- **Aplicación automática**: Clerk verifica el estado de suscripción de forma transparente
 
-## Architecture Overview
+## Resumen de la arquitectura
 
-1. **User visits `/product`** → Clerk checks subscription status
-2. **No subscription** → Shows PricingTable component
-3. **Has subscription** → Shows IdeaGenerator component
-4. **Payment** → Handled by Clerk Billing (optionally with Stripe)
-5. **Management** → Users manage subscriptions through Clerk's UI
+1. **La persona visita `/product`** → Clerk revisa su suscripción
+2. **Sin suscripción** → se muestra el componente PricingTable
+3. **Con suscripción** → se muestra el componente IdeaGenerator
+4. **Pago** → lo gestiona Clerk Billing (o Stripe)
+5. **Gestión** → las personas administran su suscripción desde la interfaz de Clerk
 
-## Troubleshooting
+## Resolución de problemas
 
-### "Plan not found" error
-- Ensure the plan key is exactly `premium_subscription`
-- Check that billing is enabled in Clerk Dashboard
-- Verify the plan is active (not archived)
+### Error "Plan not found"
+- Asegúrate de que la clave del plan sea exactamente `premium_subscription`
+- Revisa que la facturación esté habilitada en el panel de Clerk
+- Verifica que el plan esté activo (no archivado)
 
-### Pricing table not showing
-- Clear browser cache and cookies
-- Check that `@clerk/nextjs` is up to date
-- Ensure billing is enabled in your Clerk application
+### La tabla de precios no aparece
+- Borra caché y cookies del navegador
+- Comprueba que `@clerk/nextjs` esté actualizado
+- Asegura que la facturación esté habilitada en tu aplicación de Clerk
 
-### Always seeing the pricing table (even after subscribing)
-- Check the user's subscription status in Clerk Dashboard
-- Verify the plan key matches exactly
-- Try signing out and back in
+### Siempre ves la tabla de precios (incluso tras suscribirte)
+- Revisa el estado de la suscripción de ese usuario en el panel de Clerk
+- Verifica que la clave del plan coincida exactamente
+- Intenta cerrar sesión y volver a entrar
 
-### Payment not working
-- This is normal if you haven't connected a payment provider
-- Clerk will simulate subscriptions in test mode
-- For real payments, connect Stripe in Billing Settings
+### El pago no funciona
+- Es normal si no conectaste un proveedor de pagos
+- Clerk simulará las suscripciones en modo de prueba
+- Para pagos reales, conecta Stripe en Billing Settings
 
-## Customization Options
+## Opciones de personalización
 
-### Different Plan Tiers
+### Distintos niveles de plan
 
-You can create multiple plans in Clerk Dashboard:
+Puedes crear varios planes en el panel de Clerk:
 ```typescript
 <Protect
     plan={["basic_plan", "premium_plan", "enterprise_plan"]}
@@ -346,9 +346,9 @@ You can create multiple plans in Clerk Dashboard:
 </Protect>
 ```
 
-### Custom Pricing Table
+### Tabla de precios personalizada
 
-Instead of Clerk's default PricingTable, you can build your own:
+En lugar de la PricingTable de Clerk, puedes construir la tuya:
 ```typescript
 <Protect
     plan="premium_subscription"
@@ -358,9 +358,9 @@ Instead of Clerk's default PricingTable, you can build your own:
 </Protect>
 ```
 
-### Usage Limits
+### Límites de uso
 
-Track API usage per user in your backend:
+Controla el uso de la API por persona en tu backend:
 ```python
 @app.get("/api")
 def idea(creds: HTTPAuthorizationCredentials = Depends(clerk_guard)):
@@ -376,23 +376,23 @@ def idea(creds: HTTPAuthorizationCredentials = Depends(clerk_guard)):
         pass
 ```
 
-## Next Steps
+## Próximos pasos
 
-Congratulations! You've built a complete SaaS with:
-- ✅ User authentication
-- ✅ Subscription management
-- ✅ Payment processing
-- ✅ AI-powered features
-- ✅ Professional UI/UX
+¡Felicidades! Construiste un SaaS completo con:
+- ✅ Autenticación de usuarios
+- ✅ Gestión de suscripciones
+- ✅ Procesamiento de pagos
+- ✅ Funcionalidades impulsadas por IA
+- ✅ UI/UX profesional
 
-### Ideas for Enhancement
+### Ideas para mejorar
 
-1. **Multiple subscription tiers** (Basic, Pro, Enterprise)
-2. **Usage tracking** and limits per tier
-3. **Webhook integration** for subscription events
-4. **Email notifications** for subscription changes
-5. **Admin dashboard** to manage users and subscriptions
-6. **Annual billing discounts**
-7. **Free trial periods**
+1. **Múltiples niveles de suscripción** (Basic, Pro, Enterprise)
+2. **Seguimiento de uso** y límites por nivel
+3. **Integración de webhooks** para eventos de suscripción
+4. **Notificaciones por email** ante cambios de suscripción
+5. **Panel de administración** para gestionar usuarios y suscripciones
+6. **Descuentos por facturación anual**
+7. **Periodos de prueba gratis**
 
-Your Business Idea Generator is now a fully-functional SaaS product ready for real customers!
+¡Tu Generador de Ideas de Negocio ahora es un producto SaaS completo listo para clientes reales!

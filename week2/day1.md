@@ -1,81 +1,81 @@
-# Day 1: Introducing The Twin
+# Día 1: Presentando The Twin
 
-## Your AI Digital Twin Comes to Life
+## Tu Gemelo Digital de IA cobra vida
 
-Welcome to Week 2! This week, you'll build and deploy your own AI Digital Twin - a conversational AI that represents you (or anyone you choose) and can interact with visitors on your behalf. By the end of this week, your twin will be deployed on AWS, complete with memory, personality, and professional cloud infrastructure.
+Bienvenido a la Semana 2. Esta semana, construirás y desplegarás tu propio Gemelo Digital de IA: una IA conversacional que te representa a ti (o a cualquier persona que elijas) y que puede interactuar con los visitantes en tu nombre. Para el final de esta semana, tu twin estará desplegado en AWS, completo con memoria, personalidad e infraestructura profesional en la nube.
 
-Today, we'll start by building a local version that showcases a fundamental challenge in AI applications: the importance of conversation memory.
+Hoy, comenzaremos construyendo una versión local que muestra un desafío fundamental en las aplicaciones de IA: la importancia de la memoria de la conversación.
 
-## What You'll Learn Today
+## Lo que aprenderás hoy
 
-- **Next.js App Router** vs Pages Router architecture
-- **Building a chat interface** with React and Tailwind CSS
-- **Creating a FastAPI backend** for AI conversations
-- **Understanding stateless AI** and why memory matters
-- **Implementing file-based memory** for conversation persistence
+- **Next.js App Router** vs arquitectura Pages Router
+- **Construir una interfaz de chat** con React y Tailwind CSS
+- **Crear un backend FastAPI** para conversaciones de IA
+- **Entender la IA sin estado** y por qué la memoria importa
+- **Implementar memoria basada en archivos** para la persistencia de conversaciones
 
-## Understanding App Router vs Pages Router
+## Entendiendo App Router vs Pages Router
 
-In Week 1, we used Next.js with the **Pages Router**. This week, we're using the **App Router**. Here's what you need to know:
+En la Semana 1, usamos Next.js con el **Pages Router**. Esta semana, estamos usando el **App Router**. Esto es lo que necesitas saber:
 
-### Pages Router (Week 1)
-- Files in `pages/` directory become routes
+### Pages Router (Semana 1)
+- Los archivos en el directorio `pages/` se convierten en rutas
 - `pages/index.tsx` → `/`
 - `pages/product.tsx` → `/product`
-- Uses `getServerSideProps` for data fetching
+- Usa `getServerSideProps` para la obtención de datos
 
-### App Router (Week 2)
-- Files in `app/` directory define routes
+### App Router (Semana 2)
+- Los archivos en el directorio `app/` definen rutas
 - `app/page.tsx` → `/`
 - `app/about/page.tsx` → `/about`
-- Uses React Server Components by default
-- More modern, better performance, recommended for new projects
+- Usa React Server Components por defecto
+- Más moderno, mejor rendimiento, recomendado para proyectos nuevos
 
-For our purposes, the main difference is the project structure - the actual React code you write will be very similar!
+Para nuestros propósitos, la diferencia principal es la estructura del proyecto: ¡el código React que escribas será muy similar!
 
-## Part 1: Project Setup
+## Parte 1: Configuración del proyecto
 
-### Step 1: Create Your Project Structure
+### Paso 1: Crea la estructura de tu proyecto
 
-Open Cursor (or your preferred IDE) and create a new project:
+Abre Cursor (o tu IDE preferido) y crea un proyecto nuevo:
 
-1. **Windows/Mac/Linux:** File → Open Folder → Create a new folder called `twin`
-2. Open the `twin` folder in Cursor
+1. **Windows/Mac/Linux:** File → Open Folder → Crea una carpeta nueva llamada `twin`
+2. Abre la carpeta `twin` en Cursor
 
-### Step 2: Create Project Directories
+### Paso 2: Crea directorios del proyecto
 
-In Cursor's file explorer (the left sidebar):
+En el explorador de archivos de Cursor (la barra lateral izquierda):
 
-1. Right-click in the empty space under your `twin` folder
-2. Select **New Folder** and name it `backend`
-3. Right-click again and select **New Folder** and name it `memory`
+1. Haz clic derecho en el espacio vacío debajo de tu carpeta `twin`
+2. Selecciona **New Folder** y nómbralo `backend`
+3. Haz clic derecho de nuevo y selecciona **New Folder** y nómbralo `memory`
 
-Your project structure should now look like:
+Tu estructura de proyecto ahora debería verse así:
 ```
 twin/
 ├── backend/
 └── memory/
 ```
 
-### Step 3: Initialize the Frontend
+### Paso 3: Inicializa el frontend
 
-Let's create a Next.js app with the App Router.
+Vamos a crear una app de Next.js con App Router.
 
-Open a terminal in Cursor (Terminal → New Terminal or Ctrl+\` / Cmd+\`):
+Abre una terminal en Cursor (Terminal → New Terminal o Ctrl+` / Cmd+`):
 
 ```bash
 npx create-next-app@latest frontend --typescript --tailwind --app --no-src-dir
 ```
 
-When prompted, accept all the default options by pressing Enter.
+Cuando se te solicite, acepta todas las opciones predeterminadas presionando Enter.
 
-After it completes, create a components directory using Cursor's file explorer:
+Después de que termine, crea un directorio components usando el explorador de archivos de Cursor:
 
-1. In the left sidebar, expand the `frontend` folder
-2. Right-click on the `frontend` folder
-3. Select **New Folder** and name it `components`
+1. En la barra lateral izquierda, expande la carpeta `frontend`
+2. Haz clic derecho en la carpeta `frontend`
+3. Selecciona **New Folder** y nómbralo `components`
 
-✅ **Checkpoint**: Your project structure should look like:
+✅ **Punto de control**: Tu estructura de proyecto debería verse así:
 ```
 twin/
 ├── backend/
@@ -83,19 +83,19 @@ twin/
 │   ├── app/
 │   ├── components/
 │   ├── public/
-│   └── (various config files)
+│   └── (varios archivos de configuración)
 └── memory/
 ```
 
-## Part 2: Install Python Package Manager
+## Parte 2: Instala el gestor de paquetes de Python
 
-We'll use `uv` - a modern, fast Python package manager that's much faster than pip.
+Usaremos `uv`, un gestor de paquetes moderno y rápido para Python que es mucho más veloz que pip.
 
-### Install uv
+### Instala uv
 
-Visit the uv installation guide: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
+Visita la guía de instalación de uv: [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)
 
-**Quick installation:**
+**Instalación rápida:**
 
 **Mac/Linux:**
 ```bash
@@ -107,18 +107,18 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-After installation, close and reopen your terminal, then verify:
+Después de la instalación, cierra y vuelve a abrir tu terminal, luego verifica:
 ```bash
 uv --version
 ```
 
-You should see a version number like `uv 0.8.18` or similar.
+Deberías ver un número de versión como `uv 0.8.18` o similar.
 
-## Part 3: Create the Backend API
+## Parte 3: Crea la API del backend
 
-### Step 1: Create Requirements File
+### Paso 1: Crea el archivo de requisitos
 
-Create `backend/requirements.txt`:
+Crea `backend/requirements.txt`:
 
 ```
 fastapi
@@ -128,28 +128,28 @@ python-dotenv
 python-multipart
 ```
 
-### Step 2: Create Environment Configuration
+### Paso 2: Crea la configuración de entorno
 
-Create `backend/.env`:
+Crea `backend/.env`:
 
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 CORS_ORIGINS=http://localhost:3000
 ```
 
-Replace `your_openai_api_key_here` with your actual OpenAI API key from Week 1.
+Reemplaza `your_openai_api_key_here` con tu API key real de OpenAI de la Semana 1.
 
-Remember to Save the file!
+¡Recuerda guardar el archivo!
 
-Also, it's a good practice in case you ever decide to push this repo to github:
+Además, es una buena práctica en caso de que alguna vez decidas subir este repo a GitHub:
 
-1. Create a new file called .gitignore in the project root (twin)
-2. Add a single line with ".env" in it
-3. Save
+1. Crea un archivo nuevo llamado .gitignore en la raíz del proyecto (`twin`)
+2. Agrega una sola línea con ".env"
+3. Guarda
 
-### Step 3: Create Your Digital Twin's Personality
+### Paso 3: Crea la personalidad de tu Gemelo Digital
 
-Create `backend/me.txt` with a description of who your digital twin represents. For example:
+Crea `backend/me.txt` con una descripción de quién representa tu Gemelo Digital. Por ejemplo:
 
 ```
 You are a chatbot acting as a "Digital Twin", representing [Your Name] on [Your Name]'s website,
@@ -161,11 +161,11 @@ provided context.
 [Your Name] is a [your profession/role]. [Add 2-3 sentences about background, expertise, or interests].
 ```
 
-Customize this to represent yourself or any persona you want your twin to embody!
+¡Personaliza esto para representarte a ti mismo o a cualquier persona cuya persona quieras que tu twin encarne!
 
-### Step 4: Create the FastAPI Server (Without Memory)
+### Paso 4: Crea el servidor FastAPI (sin memoria)
 
-Create `backend/server.py`:
+Crea `backend/server.py`:
 
 ```python
 from fastapi import FastAPI, HTTPException
@@ -259,11 +259,11 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-## Part 4: Create the Frontend Interface
+## Parte 4: Crea la interfaz frontend
 
-### Step 1: Create the Twin Component
+### Paso 1: Crea el componente Twin
 
-Create `frontend/components/twin.tsx`:
+Crea `frontend/components/twin.tsx`:
 
 ```typescript
 'use client';
@@ -466,9 +466,9 @@ export default function Twin() {
 }
 ```
 
-### Step 2: Install Required Dependencies
+### Paso 2: Instala las dependencias requeridas
 
-The Twin component uses lucide-react for icons. Install it:
+El componente Twin usa lucide-react para íconos. Instálalo:
 
 ```bash
 cd frontend
@@ -476,9 +476,9 @@ npm install lucide-react
 cd ..
 ```
 
-### Step 3: Update the Main Page
+### Paso 3: Actualiza la página principal
 
-Replace the contents of `frontend/app/page.tsx`:
+Reemplaza el contenido de `frontend/app/page.tsx`:
 
 ```typescript
 import Twin from '@/components/twin';
@@ -509,11 +509,11 @@ export default function Home() {
 }
 ```
 
-### Step 4: Fix Tailwind v4 Configuration
+### Paso 4: Corrige la configuración de Tailwind v4
 
-Next.js 15.5 comes with Tailwind CSS v4, which has a different configuration approach. We need to update two files:
+Next.js 15.5 viene con Tailwind CSS v4, que tiene un enfoque de configuración diferente. Necesitamos actualizar dos archivos:
 
-First, update `frontend/postcss.config.mjs`:
+Primero, actualiza `frontend/postcss.config.mjs`:
 
 ```javascript
 export default {
@@ -523,9 +523,9 @@ export default {
 }
 ```
 
-### Step 5: Update Global Styles for Tailwind v4
+### Paso 5: Actualiza los estilos globales para Tailwind v4
 
-Replace the contents of `frontend/app/globals.css`:
+Reemplaza el contenido de `frontend/app/globals.css`:
 
 ```css
 @import 'tailwindcss';
@@ -555,11 +555,11 @@ Replace the contents of `frontend/app/globals.css`:
 }
 ```
 
-## Part 5: Test Your Digital Twin (Without Memory)
+## Parte 5: Prueba tu Gemelo Digital (sin memoria)
 
-### Step 1: Start the Backend Server
+### Paso 1: Inicia el servidor backend
 
-Open a new terminal in Cursor (Terminal → New Terminal):
+Abre una terminal nueva en Cursor (Terminal → New Terminal):
 
 ```bash
 cd backend
@@ -569,46 +569,46 @@ uv add -r requirements.txt
 uv run uvicorn server:app --reload
 ```
 
-You should see something like this at the end:
+Deberías ver algo como esto al final:
 ```
 INFO:     Uvicorn running on http://127.0.0.1:8000
 INFO:     Application startup complete.
 ```
 
-### Step 2: Start the Frontend Development Server
+### Paso 2: Inicia el servidor de desarrollo frontend
 
-Open another new terminal:
+Abre otra terminal nueva:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-You should see:
+Deberías ver:
 ```
 ▲ Next.js 15.x.x
 Local: http://localhost:3000
 ```
 
-### Step 3: Experience the Memory Problem
+### Paso 3: Experimenta el problema de la memoria
 
-1. Open your browser and go to `http://localhost:3000`
-2. You should see your Digital Twin interface
-3. Try this conversation:
-   - **You:** "Hi! My name is Alex"
-   - **Twin:** (responds with a greeting)
-   - **You:** "What's my name?"
-   - **Twin:** (won't remember your name!)
+1. Abre tu navegador y ve a `http://localhost:3000`
+2. Deberías ver la interfaz de tu Gemelo Digital
+3. Prueba esta conversación:
+   - **Tú:** "Hi! My name is Alex"
+   - **Twin:** (responde con un saludo)
+   - **Tú:** "What's my name?"
+   - **Twin:** (¡no recordará tu nombre!)
 
-**What's happening?** Your twin has no memory! Each message is processed independently with no context from previous messages. This is like meeting someone new every single time you talk to them.
+**¿Qué está pasando?** ¡Tu twin no tiene memoria! Cada mensaje se procesa de manera independiente sin contexto de mensajes previos. Es como conocer a alguien nuevo cada vez que hablas con él.
 
-## Part 6: Adding Memory to Your Twin
+## Parte 6: Añadiendo memoria a tu Twin
 
-Now let's fix this by adding conversation memory that persists to files.
+Ahora arreglemos esto añadiendo memoria de conversación que persista en archivos.
 
-### Step 1: Update the Backend with Memory Support
+### Paso 1: Actualiza el backend con soporte de memoria
 
-Replace your `backend/server.py` with this enhanced version:
+Reemplaza tu `backend/server.py` con esta versión mejorada:
 
 ```python
 from fastapi import FastAPI, HTTPException
@@ -757,110 +757,110 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-### Step 2: Restart the Backend Server
+### Paso 2: Reinicia el servidor backend
 
-Stop the backend server (Ctrl+C in the terminal) and restart it:
+Detén el servidor backend (Ctrl+C en la terminal) y reinícialo:
 
 ```bash
 uv run uvicorn server:app --reload
 ```
 
-### Step 3: Test Memory Persistence
+### Paso 3: Prueba la persistencia de la memoria
 
-1. Refresh your browser at `http://localhost:3000`
-2. Have a conversation:
-   - **You:** "Hi! My name is Alex and I love Python"
-   - **Twin:** (responds with greeting)
-   - **You:** "What's my name and what do I love?"
-   - **Twin:** (remembers your name is Alex and you love Python!)
+1. Refresca tu navegador en `http://localhost:3000`
+2. Ten una conversación:
+   - **Tú:** "Hi! My name is Alex and I love Python"
+   - **Twin:** (responde con un saludo)
+   - **Tú:** "What's my name and what do I love?"
+   - **Twin:** (¡recuerda que te llamas Alex y que te encanta Python!)
 
-3. Check the memory folder - you'll see JSON files containing your conversations!
+3. Revisa la carpeta memory: ¡verás archivos JSON que contienen tus conversaciones!
 
 ```bash
 ls ../memory/
 ```
 
-You'll see files like `abc123-def456-....json` containing the full conversation history.
+Verás archivos como `abc123-def456-....json` que contienen el historial completo de la conversación.
 
-## Understanding What We Built
+## Entendiendo lo que construimos
 
-### The Architecture
+### La arquitectura
 
 ```
-User Browser → Next.js Frontend → FastAPI Backend → OpenAI API
+Navegador del usuario → Frontend Next.js → Backend FastAPI → OpenAI API
                      ↑                    ↓
-                     └──── Memory Files ←─┘
+                     └──── Archivos de memoria ←─┘
 ```
 
-### Key Components
+### Componentes clave
 
-1. **Frontend (Next.js with App Router)**
-   - `app/page.tsx`: Main page using Server Components
-   - `components/twin.tsx`: Client-side chat component
-   - Real-time UI updates with React state
+1. **Frontend (Next.js con App Router)**
+   - `app/page.tsx`: Página principal usando Server Components
+   - `components/twin.tsx`: Componente de chat del lado del cliente
+   - Actualizaciones de UI en tiempo real con estado de React
 
 2. **Backend (FastAPI)**
-   - RESTful API endpoints
-   - OpenAI integration
-   - File-based memory persistence
-   - Session management
+   - Endpoints RESTful
+   - Integración con OpenAI
+   - Persistencia de memoria basada en archivos
+   - Gestión de sesiones
 
-3. **Memory System**
-   - JSON files store conversation history
-   - Each session has its own file
-   - Conversations persist across server restarts
+3. **Sistema de memoria**
+   - Archivos JSON almacenan el historial de conversación
+   - Cada sesión tiene su propio archivo
+   - Las conversaciones persisten a través de reinicios del servidor
 
-## Congratulations! 🎉
+## ¡Felicidades! 🎉
 
-You've successfully built your first AI Digital Twin with:
-- ✅ A responsive chat interface
-- ✅ Integration with OpenAI's API
-- ✅ Persistent conversation memory
-- ✅ Session management
-- ✅ Professional project structure
+Has construido tu primer Gemelo Digital de IA con:
+- ✅ Una interfaz de chat responsiva
+- ✅ Integración con la API de OpenAI
+- ✅ Memoria de conversación persistente
+- ✅ Gestión de sesiones
+- ✅ Estructura profesional de proyecto
 
-### What You've Learned
+### Lo que aprendiste
 
-1. **The importance of memory in AI applications** - Without memory, AI interactions feel disconnected and frustrating
-2. **File-based persistence** - A simple but effective way to store conversation history
-3. **Session management** - How to track different conversations
-4. **Full-stack AI development** - Connecting frontend, backend, and AI services
+1. **La importancia de la memoria en aplicaciones de IA**: sin memoria, las interacciones de IA se sienten desconectadas y frustrantes
+2. **Persistencia basada en archivos**: una forma simple pero efectiva de almacenar el historial de conversaciones
+3. **Gestión de sesiones**: cómo rastrear conversaciones diferentes
+4. **Desarrollo de IA full-stack**: conectar frontend, backend y servicios de IA
 
-## Troubleshooting
+## Solución de problemas
 
-### "Connection refused" error
-- Make sure both backend and frontend servers are running
-- Check that the backend is on port 8000 and frontend on port 3000
+### Error "Connection refused"
+- Asegúrate de que tanto el servidor backend como el frontend estén ejecutándose
+- Verifica que el backend esté en el puerto 8000 y el frontend en el puerto 3000
 
-### OpenAI API errors
-- Verify your API key is correct in `backend/.env`
-- Check you have credits in your OpenAI account
+### Errores de la API de OpenAI
+- Verifica que tu API key sea correcta en `backend/.env`
+- Revisa que tengas créditos en tu cuenta de OpenAI
 
-### Memory not persisting
-- Ensure the `memory/` directory exists
-- Check file permissions if on Linux/Mac
-- Look for `.json` files in the memory directory
+### La memoria no persiste
+- Asegúrate de que el directorio `memory/` exista
+- Verifica los permisos de archivo si estás en Linux/Mac
+- Busca archivos `.json` en el directorio memory
 
-### Frontend not updating
-- Clear your browser cache
-- Make sure you saved all files
-- Check the browser console for errors
+### El frontend no se actualiza
+- Limpia la cache del navegador
+- Asegúrate de haber guardado todos los archivos
+- Revisa la consola del navegador para ver errores
 
-## Next Steps
+## Próximos pasos
 
-Tomorrow (Day 2), we'll:
-- Add personalization with custom data and documents
-- Deploy the backend to AWS Lambda
-- Set up CloudFront for global distribution
-- Create a production-ready architecture
+Mañana (Día 2), vamos a:
+- Añadir personalización con datos y documentos personalizados
+- Desplegar el backend en AWS Lambda
+- Configurar CloudFront para distribución global
+- Crear una arquitectura lista para producción
 
-Your Digital Twin is just getting started! Tomorrow we'll give it more personality and deploy it to the cloud.
+¡Tu Gemelo Digital apenas está comenzando! Mañana le daremos más personalidad y lo desplegaremos en la nube.
 
-## Resources
+## Recursos
 
-- [Next.js App Router Documentation](https://nextjs.org/docs/app)
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
-- [uv Documentation](https://docs.astral.sh/uv/)
+- [Documentación del App Router de Next.js](https://nextjs.org/docs/app)
+- [Documentación de FastAPI](https://fastapi.tiangolo.com/)
+- [Referencia de la API de OpenAI](https://platform.openai.com/docs/api-reference)
+- [Documentación de uv](https://docs.astral.sh/uv/)
 
-Ready for Day 2? Your twin is about to get a lot more interesting! 🚀
+¿Listo para el Día 2? ¡Tu twin está a punto de volverse mucho más interesante! 🚀

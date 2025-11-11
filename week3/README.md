@@ -1,46 +1,45 @@
-# Days 1 and 2: Please move to the cyber repo:
+# Días 1 y 2: Por favor ve al repositorio cyber
 
-### Clone the Repository
+### Clona el repositorio
 
-If you haven't already cloned the repository, do so now:
+Si todavía no lo clonaste, hazlo ahora:
 
-From your projects directory:
-
-```bash
-git clone https://github.com/ed-donner/cyber.git
-```
-
-### Open in Cursor
-
-1. Launch Cursor
-2. Click **File** → **New Window**
-3. Click **Open Folder**
-4. Navigate to and select the `cyber` folder you just cloned
-5. Click **Open**
-
-You should now see the project structure in Cursor's file explorer on the left.
-
-### Then please head over to week 3, day1part0.md (right click and open preview).
-
-# Day 3: Please move over to the Alex repo:
-
-If you haven't already cloned the repository, do so now:
-
-From your projects directory:
+Desde tu directorio de proyectos:
 
 ```bash
-git clone https://github.com/ed-donner/alex.git
+git clone https://github.com/joanby/cyber.git
 ```
 
-### Open in Cursor
+### Abrir en Cursor
 
-1. Launch Cursor
-2. Click **File** → **New Window**
-3. Click **Open Folder**
-4. Navigate to and select the `alex` folder you just cloned
-5. Click **Open**
+1. Abre Cursor
+2. Haz clic en **File** → **New Window**
+3. Haz clic en **Open Folder**
+4. Navega y selecciona la carpeta `cyber` que acabas de clonar
+5. Haz clic en **Open**
 
-You should now see the project structure in Cursor's file explorer on the left.
+Ahora deberías ver la estructura del proyecto en el explorador de archivos de Cursor (panel izquierdo).
 
-Then open the guides folder and select the first guide, 1_permissions.md (right click and open preview).
+### Después dirígete a week 3, day1part0.md (clic derecho y abre la vista previa).
 
+# Día 3: Por favor ve al repositorio Alex
+
+Si aún no lo clonaste, hazlo ahora:
+
+Desde tu directorio de proyectos:
+
+```bash
+git clone https://github.com/joanby/alex.git
+```
+
+### Abrir en Cursor
+
+1. Abre Cursor
+2. Haz clic en **File** → **New Window**
+3. Haz clic en **Open Folder**
+4. Navega y selecciona la carpeta `alex` que acabas de clonar
+5. Haz clic en **Open**
+
+Ahora deberías ver la estructura del proyecto en el explorador de archivos de Cursor.
+
+Luego abre la carpeta guides y selecciona la primera guía, 1_permissions.md (clic derecho y abre la vista previa).

@@ -1,213 +1,212 @@
-# Day 5: Deploy Your SaaS to AWS App Runner
+# Día 5: Despliega tu SaaS en AWS App Runner
 
-## From Vercel to AWS: Professional Cloud Deployment
+## De Vercel a AWS: despliegue profesional en la nube
 
-Today, you'll take your Healthcare Consultation Assistant from Vercel and deploy it to AWS using Docker containers and App Runner. This is how professional teams deploy production applications at scale.
+Hoy llevarás tu Asistente de Consultas Médicas desde Vercel a AWS usando contenedores Docker y App Runner. Así es como los equipos profesionales despliegan aplicaciones de producción a escala.
 
-## What You'll Learn
+## Lo que aprenderás
 
-- **Docker containerization** for consistent deployments
-- **AWS fundamentals** and account setup
-- **AWS App Runner** for serverless container hosting
-- **Production deployment** patterns used by engineering teams
-- **Cost monitoring** to keep your AWS bill under control
+- **Contenerización con Docker** para despliegues consistentes
+- **Fundamentos de AWS** y configuración de la cuenta
+- **AWS App Runner** para alojar contenedores serverless
+- **Patrones de despliegue en producción** usados por equipos de ingeniería
+- **Monitoreo de costos** para mantener bajo control tu factura de AWS
 
-## Important: Budget Protection First! 💰
+## Importante: ¡protege tu presupuesto primero! 💰
 
-AWS charges for resources you use. Let's set up cost alerts BEFORE deploying anything:
+AWS cobra por los recursos que utilizas. Configuremos alertas de costos ANTES de desplegar nada.
 
-**Expected costs**: With our configuration, expect ~$5-10/month. AWS offers free tier credits for new accounts that should cover your first 3 months.
+**Costos esperados**: con nuestra configuración, calcula ~$5-10/mes. AWS ofrece créditos del free tier para cuentas nuevas que suelen cubrir los primeros 3 meses.
 
-We'll set up budget alerts at $1, $5, and $10 to track spending. This is a crucial professional practice!
+Crearemos alertas de presupuesto en $1, $5 y $10 para vigilar el gasto. ¡Es una práctica profesional clave!
 
-## Understanding AWS Services We'll Use
+## Comprende los servicios de AWS que usaremos
 
-Before we start, let's understand the AWS services:
+Antes de comenzar, revisemos los servicios involucrados:
 
 ### AWS App Runner
-**App Runner** is AWS's simplest way to deploy containerized web applications. Think of it as "Vercel for Docker containers" - it automatically handles HTTPS certificates, load balancing, and scaling. You just provide a container, and App Runner does the rest.
+**App Runner** es la forma más simple de AWS para desplegar aplicaciones web contenerizadas. Piensa en él como “Vercel para contenedores Docker”: maneja certificados HTTPS, balanceo y escalado automáticamente. Tú proporcionas el contenedor y App Runner hace el resto.
 
 ### Amazon ECR (Elastic Container Registry)
-**ECR** is like GitHub but for Docker images. It's where we'll store our containerized application before deploying it to App Runner.
+**ECR** es como GitHub pero para imágenes Docker. Allí almacenaremos la aplicación contenerizada antes de desplegarla en App Runner.
 
 ### AWS IAM (Identity and Access Management)
-**IAM** controls who can access what in your AWS account. We'll create a special user account with limited permissions for safety - never use your root account for daily work!
+**IAM** controla quién puede acceder a qué dentro de tu cuenta de AWS. Crearemos un usuario especial con permisos limitados por seguridad: ¡nunca uses tu cuenta root para el trabajo diario!
 
 ### CloudWatch
-**CloudWatch** is AWS's monitoring service. It collects logs from your application and helps you debug issues - like having the browser console for your server.
+**CloudWatch** es el servicio de monitoreo de AWS. Recoge logs de tu aplicación y ayuda a depurar problemas; es como tener la consola del navegador para tu servidor.
 
-## Part 1: Create Your AWS Account
+## Parte 1: Crea tu cuenta de AWS
 
-## WAIT - HEADS UP - DISCOVERY SINCE GOING TO PRESS!
+## ESPERA – ¡AVISO IMPORTANTE DESCUBIERTO TRAS PUBLICAR!
 
-There's an option for first time users of AWS to select the "free tier" of AWS. Don't choose this! It only has limited access to AWS services, including no access to App Runner (the service we use today). This doesn't mean that you need to pay a subscription or pay for support; just that you need to enter payment details and not be in a sandbox environment. Student Jake C. confirmed that $120 free credits still applied even after signing up for a full account.
+Existe una opción para quienes usan AWS por primera vez que permite seleccionar el “free tier”. ¡No la elijas! Tiene acceso limitado a los servicios, incluido que no permite App Runner (el servicio que usamos hoy). Esto no significa pagar suscripciones o soporte; solo que debes introducir datos de pago y no estar en un entorno sandbox. El estudiante Jake C. confirmó que los $120 de créditos gratuitos siguen aplicando incluso tras registrarse con una cuenta completa.
 
-This was discovered brilliantly by student Andy C. who shared:
+Esto lo descubrió brillantemente el estudiante Andy C., quien compartió:
 
-> **Cryptic App Runner service error message: "The AWS Access Key Id needs a subscription for the service"**  
-> 
-> I struggled with this message for 24 hours and wanted to let everyone know the root cause. I get it when (1) I try to set up a new "Auto scaling" config (e.g., "Basic" that Ed suggests) and (2) when I try to save and create my app runner service.
->
-> Here was the problem: I was signed up for the free tier of AWS. Apparently the free tier does not allow for you to use App Runner. Argh. Once I upgraded to paid tier, I was golden.
-> 
-> I tried so many other things to try to fix this issue and spent hours trying to understand IAM, thinking that was the problem. I hope this message saves someone else a huge amount of time!
+> **Mensaje críptico de App Runner: "The AWS Access Key Id needs a subscription for the service"**  
+> Luché con este mensaje durante 24 horas y quería que todos supieran la causa raíz. Me aparecía cuando (1) intentaba crear una configuración de "Auto scaling" (por ejemplo, "Basic", como sugiere Ed) y (2) cuando trataba de guardar y crear mi servicio de App Runner.  
+>  
+> El problema fue: estaba registrado en el free tier de AWS. Aparentemente el free tier no permite usar App Runner. Una vez que actualicé a la cuenta de pago, todo funcionó.  
+>  
+> Probé muchas otras cosas e invertí horas intentando entender IAM, pensando que ese era el problema. ¡Espero que este mensaje le ahorre a alguien una enorme cantidad de tiempo!
 
-This is an example of the kind of infrastructure horrors you may face - and with enormous appreciation to Andy for digging in, finding the root cause and sharing with us all.
+Este es un ejemplo de los horrores de infraestructura que podrías enfrentar; enorme agradecimiento a Andy por investigar, hallar la causa y compartirla.
 
-With that in mind:
+Con eso en mente:
 
-### Step 1: Sign Up for AWS
+### Paso 1: Regístrate en AWS
 
-1. Visit [aws.amazon.com](https://aws.amazon.com)
-2. Click **Create an AWS Account**
-3. Enter your email and choose a password
-4. Select **Personal** account type (for learning)
-5. Enter payment information (required, but we'll set up cost alerts)
-6. Verify your phone number via SMS
-7. Select **Basic Support - Free**
+1. Visita [aws.amazon.com](https://aws.amazon.com)
+2. Haz clic en **Create an AWS Account**
+3. Ingresa tu correo y elige una contraseña
+4. Selecciona el tipo de cuenta **Personal** (para aprendizaje)
+5. Introduce la información de pago (obligatoria, pero configuraremos alertas)
+6. Verifica tu teléfono vía SMS
+7. Selecciona **Basic Support - Free**
 
-You now have an AWS root account. This is like having admin access - powerful but dangerous!
+Ahora tienes una cuenta root en AWS. Es como tener acceso de administrador: poderoso, pero peligroso.
 
-### Step 2: Secure Your Root Account
+### Paso 2: Asegura tu cuenta root
 
-1. Sign in to AWS Console
-2. Click your account name (top right) → **Security credentials**
-3. Enable **Multi-Factor Authentication (MFA)**:
-   - Click **Assign MFA device**
-   - Name: `root-mfa`
-   - Select **Authenticator app**
-   - Scan QR code with Google Authenticator or Authy
-   - Enter two consecutive codes
-   - Click **Add MFA**
+1. Inicia sesión en la consola de AWS
+2. Haz clic en tu nombre de cuenta (arriba a la derecha) → **Security credentials**
+3. Activa **Multi-Factor Authentication (MFA)**:
+   - Haz clic en **Assign MFA device**
+   - Nombre: `root-mfa`
+   - Selecciona **Authenticator app**
+   - Escanea el código QR con Google Authenticator o Authy
+   - Introduce dos códigos consecutivos
+   - Haz clic en **Add MFA**
 
-### Step 3: Set Up Budget Alerts (Critical!)
+### Paso 3: Configura alertas de presupuesto (¡crítico!)
 
-1. In AWS Console, search for **Billing** and click **Billing and Cost Management**
-2. In the left menu, click **Budgets**
-3. Click **Create budget**
-4. Select **Use a template (simplified)**
-5. Choose **Monthly cost budget**
-6. Set up three budgets:
+1. En la consola de AWS, busca **Billing** y abre **Billing and Cost Management**
+2. En el menú izquierdo, haz clic en **Budgets**
+3. Pulsa **Create budget**
+4. Selecciona **Use a template (simplified)**
+5. Elige **Monthly cost budget**
+6. Configura tres presupuestos:
 
-**Budget 1 - Early Warning ($1)**:
-- Budget name: `early-warning`
-- Enter budgeted amount: `1` USD
-- Email recipients: Enter your email address
-- Click **Create budget**
+**Presupuesto 1 – Alerta temprana ($1)**:
+- Nombre: `early-warning`
+- Monto: `1` USD
+- Emails: tu dirección
+- Pulsa **Create budget**
 
-**Budget 2 - Caution ($5)**:
-- Repeat steps: Create budget → Use a template → Monthly cost budget
-- Budget name: `caution-budget`
-- Enter budgeted amount: `5` USD
-- Email recipients: Enter your email address
-- Click **Create budget**
+**Presupuesto 2 – Precaución ($5)**:
+- Repite los pasos
+- Nombre: `caution-budget`
+- Monto: `5` USD
+- Emails: tu correo
+- Crear presupuesto
 
-**Budget 3 - Stop Alert ($10)**:
-- Repeat steps: Create budget → Use a template → Monthly cost budget
-- Budget name: `stop-budget`
-- Enter budgeted amount: `10` USD
-- Email recipients: Enter your email address
-- Click **Create budget**
+**Presupuesto 3 – Detente ($10)**:
+- Repite el proceso
+- Nombre: `stop-budget`
+- Monto: `10` USD
+- Emails: tu correo
+- Crear presupuesto
 
-AWS will automatically notify you when:
-- Your actual spend reaches 85% of budget
-- Your actual spend reaches 100% of budget
-- Your forecasted spend is expected to reach 100%
+AWS te notificará automáticamente cuando:
+- El gasto real llegue al 85% del presupuesto
+- El gasto real alcance el 100%
+- El gasto proyectado vaya camino al 100%
 
-If you hit $10, stop and review what's running!
+Si llegas a $10, detente y revisa qué está en ejecución.
 
-### Step 4: Create an IAM User for Daily Work
+### Paso 4: Crea un usuario IAM para el trabajo diario
 
-Never use your root account for daily work. Let's create a limited user:
+Nunca uses la cuenta root para tareas diarias. Crearemos un usuario limitado:
 
-1. Search for **IAM** in the AWS Console
-2. Click **Users** → **Create user**
+1. Busca **IAM** en la consola
+2. Haz clic en **Users** → **Create user**
 3. Username: `aiengineer`
-4. Check ✅ **Provide user access to the AWS Management Console**
-5. Select **I want to create an IAM user**
-6. Choose **Custom password** and set a strong password
-7. Uncheck ⬜ **Users must create a new password at next sign-in**
-8. Click **Next**
+4. Marca ✅ **Provide user access to the AWS Management Console**
+5. Selecciona **I want to create an IAM user**
+6. Elige **Custom password** y define una contraseña fuerte
+7. Desmarca ⬜ **Users must create a new password at next sign-in**
+8. Haz clic en **Next**
 
-### Step 5: Create a User Group with Permissions
+### Paso 5: Crea un grupo con permisos
 
-We'll create a reusable permission group first, then add our user to it:
+Primero crearemos un grupo reutilizable y luego añadiremos al usuario:
 
-1. On the permissions page, select **Add user to group**
-2. Click **Create group**
-3. Group name: `BroadAIEngineerAccess`
-4. In the permissions policies search, find and check these policies:
-   - `AWSAppRunnerFullAccess` - to deploy applications
-   - `AmazonEC2ContainerRegistryFullAccess` - to store Docker images
-   - `CloudWatchLogsFullAccess` - to view logs
-   - `IAMUserChangePassword` - to manage own credentials
-   - IMPORTANT: also `IAMFullAccess` - I don't think I mention this in the video, but it must be included or you will get errors later! Thank you Anthony W and Jake C for pointing this out.
-5. Click **Create user group**
-6. Back on the permissions page, select the `BroadAIEngineerAccess` group (it should be checked)
-7. Click **Next** → **Create user**
-8. **Important**: Click **Download .csv file** and save it securely!
+1. En la página de permisos, elige **Add user to group**
+2. Pulsa **Create group**
+3. Nombre: `BroadAIEngineerAccess`
+4. En el buscador de políticas, marca:
+   - `AWSAppRunnerFullAccess`
+   - `AmazonEC2ContainerRegistryFullAccess`
+   - `CloudWatchLogsFullAccess`
+   - `IAMUserChangePassword`
+   - IMPORTANTE: también `IAMFullAccess` (no aparece en el video, pero es necesario o tendrás errores más adelante; gracias Anthony W y Jake C por avisar)
+5. Haz clic en **Create user group**
+6. De vuelta en permisos, selecciona el grupo `BroadAIEngineerAccess`
+7. Pulsa **Next** → **Create user**
+8. **Importante**: haz clic en **Download .csv file** y guárdalo en un lugar seguro.
 
-It's worth keeping in mind that you might get permissions errors thoughout the course, when AWS complains that your user doesn't have permission to do something. The solution is usually to come back to this screen (as the root user) and attach another policy! This is a very common chore working with AWS...
+Ten presente que podrías recibir errores de permisos cuando AWS indique que tu usuario no tiene acceso a algo. La solución suele ser volver a esta pantalla (como usuario root) y adjuntar otra política. Es una tarea muy común cuando trabajas con AWS…
 
-### Step 6: Sign In as IAM User
+### Paso 6: Inicia sesión como usuario IAM
 
-1. Sign out from root account
-2. Go to your AWS sign-in URL (in the CSV file, looks like: `https://123456789012.signin.aws.amazon.com/console`)
-3. Sign in with:
-   - Username: `aiengineer`
-   - Password: (the one you created)
+1. Cierra sesión de la cuenta root
+2. Ve a tu URL de inicio de sesión (aparece en el CSV, algo como `https://123456789012.signin.aws.amazon.com/console`)
+3. Inicia sesión con:
+   - Usuario: `aiengineer`
+   - Contraseña: la que definiste
 
-✅ **Checkpoint**: You should see "aiengineer @ Account-ID" in the top right corner
+✅ **Punto de control**: Debes ver “aiengineer @ Account-ID” arriba a la derecha
 
-## Part 2: Install Docker Desktop
+## Parte 2: Instala Docker Desktop
 
-Docker lets us package our application into a container - like a shipping container for software!
+Docker nos permite empaquetar la aplicación en un contenedor, como un contenedor marítimo para software.
 
-### Step 1: Install Docker Desktop
+### Paso 1: Instala Docker Desktop
 
-1. Visit [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
-2. Download for your system:
-   - **Mac**: Download for Mac (Apple Silicon or Intel)
-   - **Windows**: Download for Windows (requires Windows 10/11)
-3. Run the installer
-4. **Windows users**: Docker Desktop will install WSL2 if needed - accept all prompts
-5. Start Docker Desktop
-6. You may need to restart your computer
+1. Visita [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)
+2. Descarga según tu sistema:
+   - **Mac**: versión para Apple Silicon o Intel
+   - **Windows**: requiere Windows 10/11
+3. Ejecuta el instalador
+4. **Windows**: Docker instalará WSL2 si hace falta; acepta los avisos
+5. Abre Docker Desktop
+6. Puede que debas reiniciar tu equipo
 
-### Step 2: Verify Docker Works
+### Paso 2: Verifica que Docker funcione
 
-Open Terminal (Mac) or PowerShell (Windows):
+Abre Terminal (Mac) o PowerShell (Windows):
 
 ```bash
 docker --version
 ```
 
-You should see: `Docker version 26.x.x` or similar
+Deberías ver algo como `Docker version 26.x.x`
 
-Test Docker:
+Prueba Docker:
 ```bash
 docker run hello-world
 ```
 
-You should see a message starting with "Hello from Docker!" confirming Docker is working correctly.
+Deberías ver “Hello from Docker!” confirmando que funciona correctamente.
 
-✅ **Checkpoint**: Docker Desktop icon should be running (whale icon in system tray/menu bar)
+✅ **Punto de control**: El ícono de Docker Desktop (ballena) debe estar activo.
 
-## Part 3: Prepare Your Application
+## Parte 3: Prepara tu aplicación
 
-We need to modify our Day 4 application for AWS deployment. The key change: we'll export Next.js as static files and serve everything from a single container.
+Necesitamos adaptar la app del Día 4 para AWS. El cambio clave: exportaremos Next.js como archivos estáticos y serviremos todo desde un solo contenedor.
 
-### Step 1: Update Project Structure
+### Paso 1: Revisa la estructura del proyecto
 
-Your project should look like this:
+Debe lucir así:
 ```
 saas/
-├── pages/                  # Next.js Pages Router
-├── styles/                 # CSS styles
-├── api/                    # FastAPI backend
-├── public/                 # Static assets
-├── node_modules/          
-├── .env.local             # Your secrets (never commit!)
+├── pages/
+├── styles/
+├── api/
+├── public/
+├── node_modules/
+├── .env.local
 ├── .gitignore
 ├── package.json
 ├── requirements.txt
@@ -215,47 +214,44 @@ saas/
 └── tsconfig.json
 ```
 
-### Step 2: Convert to Static Export
+### Paso 2: Convierte a exportación estática
 
-**Important Architecture Change**: On Vercel, our Next.js app could make server-side requests. For AWS simplicity, we'll export Next.js as static HTML/JS files and serve them from our Python backend. This means everything runs in one container!
+**Cambio arquitectónico importante**: en Vercel, Next.js podía hacer solicitudes del lado del servidor. Para simplificar en AWS, exportaremos Next.js como archivos HTML/JS estáticos y los serviremos desde el backend Python. ¡Todo vivirá en un único contenedor!
 
-**Note about Middleware**: 
-With Pages Router, we don't use middleware files. Authentication is handled entirely by Clerk's client-side components (`<Protect>`, `<SignedIn>`, etc.) which work perfectly with static exports.
+**Nota sobre middleware**: con Pages Router no usamos archivos de middleware. La autenticación la manejan completamente los componentes client-side de Clerk (`<Protect>`, `<SignedIn>`, etc.), que funcionan perfecto con export estático.
 
-Update `next.config.ts`:
+Actualiza `next.config.ts`:
 
 ```typescript
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',  // This exports static HTML/JS files
+  output: 'export',  // Esto genera archivos estáticos
   images: {
-    unoptimized: true  // Required for static export
+    unoptimized: true  // Requerido para export estático
   }
 };
 
 export default nextConfig;
 ```
 
-### Step 3: Update Frontend API Calls
+### Paso 3: Actualiza las llamadas del frontend a la API
 
-Since we're serving everything from the same container, we need to update how the frontend calls the backend.
-
-Update `pages/product.tsx` - find the `fetchEventSource` call and change it:
+Como frontend y backend vivirán en el mismo dominio, ajusta la llamada:
 
 ```typescript
-// Old (Vercel):
+// Antes (Vercel)
 await fetchEventSource('/api', {
 
-// New (AWS):
+// Nuevo (AWS)
 await fetchEventSource('/api/consultation', {
 ```
 
-This works because both frontend and backend will be served from the same domain!
+Esto funciona porque ambos servicios se servirán desde el mismo contenedor.
 
-### Step 4: Update Backend Server
+### Paso 4: Actualiza el servidor backend
 
-Create a new file `api/server.py` (updating our FastAPI server for AWS):
+Crea `api/server.py`, que alojará tanto la API como los archivos estáticos:
 
 ```python
 import os
@@ -270,7 +266,6 @@ from openai import OpenAI
 
 app = FastAPI()
 
-# Add CORS middleware (allows frontend to call backend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -279,7 +274,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Clerk authentication setup
 clerk_config = ClerkConfig(jwks_url=os.getenv("CLERK_JWKS_URL"))
 clerk_guard = ClerkHTTPBearer(clerk_config)
 
@@ -311,19 +305,19 @@ def consultation_summary(
 ):
     user_id = creds.decoded["sub"]
     client = OpenAI()
-    
+
     user_prompt = user_prompt_for(visit)
     prompt = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    
+
     stream = client.chat.completions.create(
         model="gpt-5-nano",
         messages=prompt,
         stream=True,
     )
-    
+
     def event_stream():
         for chunk in stream:
             text = chunk.choices[0].delta.content
@@ -333,109 +327,93 @@ def consultation_summary(
                     yield f"data: {line}\n\n"
                     yield "data:  \n"
                 yield f"data: {lines[-1]}\n\n"
-    
+
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 @app.get("/health")
 def health_check():
-    """Health check endpoint for AWS App Runner"""
     return {"status": "healthy"}
 
-# Serve static files (our Next.js export) - MUST BE LAST!
 static_path = Path("static")
 if static_path.exists():
-    # Serve index.html for the root path
     @app.get("/")
     async def serve_root():
         return FileResponse(static_path / "index.html")
-    
-    # Mount static files for all other routes
+
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
 ```
 
-### Step 5: Create Environment File for AWS
+### Paso 5: Crea el archivo de entorno para AWS
 
-Create `.env` file (copy from `.env.local` but add AWS info):
+Genera `.env` (copia de `.env.local` pero añade datos de AWS):
 
 ```bash
-# Copy your values from .env.local
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 CLERK_JWKS_URL=https://...
 OPENAI_API_KEY=sk-...
 
-# Add AWS configuration (use your chosen region from earlier) - us-east-1 or eu-west-1 etc
 DEFAULT_AWS_REGION=us-east-1
 AWS_ACCOUNT_ID=123456789012
 ```
 
-**To find your AWS Account ID**:
-1. In AWS Console, click your username (top right)
-2. Copy the 12-digit Account ID
+Para encontrar tu Account ID: en la consola, haz clic en tu usuario (arriba a la derecha) y copia el número de 12 dígitos.
 
-**Important**: Add `.env` to your `.gitignore` file if not already there!
+**Importante**: añade `.env` a `.gitignore` si aún no está.
 
-## Part 4: Create Docker Configuration
+## Parte 4: Configura Docker
 
-Docker lets us package everything into a single container that runs anywhere.
+Docker nos permitirá empaquetar todo en un contenedor.
 
-### Step 1: Create Dockerfile
-
-Create `Dockerfile` in your project root:
+### Paso 1: Crea el Dockerfile
 
 ```dockerfile
-# Stage 1: Build the Next.js static files
+# Etapa 1: construir los archivos estáticos de Next.js
 FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app
 
-# Copy package files first (for better caching)
+# Copiamos los archivos de dependencias primero (mejor caché)
 COPY package*.json ./
 RUN npm ci
 
-# Copy all frontend files
+# Copiamos el resto del frontend
 COPY . .
 
-# Build argument for Clerk public key
+# Pasamos la publishable key al build (es pública por diseño)
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
-# Note: Docker may warn about "secrets in ARG/ENV" - this is OK!
-# The NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is meant to be public (it starts with pk_)
-# It's safe to include in the build as it's designed for client-side use
-
-# Build the Next.js app (creates 'out' directory with static files)
+# Generamos la exportación estática (carpeta out)
 RUN npm run build
 
-# Stage 2: Create the final Python container
+# Etapa 2: contenedor final de Python
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install Python dependencies
+# Dependencias de Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the FastAPI server
+# Servidor FastAPI
 COPY api/server.py .
 
-# Copy the Next.js static export from builder stage
+# Archivos estáticos generados por Next.js
 COPY --from=frontend-builder /app/out ./static
 
-# Health check
+# Health check para App Runner
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
-# Expose port 8000 (FastAPI will serve everything)
+# FastAPI escuchará en el puerto 8000
 EXPOSE 8000
 
-# Start the FastAPI server
+# Comando de arranque
 CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-### Step 2: Create .dockerignore
-
-Create `.dockerignore` to exclude unnecessary files:
+### Paso 2: Crea `.dockerignore`
 
 ```
 node_modules
@@ -452,18 +430,18 @@ dist
 build
 ```
 
-## Part 5: Build and Test Locally
+## Parte 5: Construye y prueba en local
 
-Let's test our containerized app before deploying to AWS.
+Probemos el contenedor antes de ir a AWS.
 
-### Step 1: Load Environment Variables
+### Paso 1: Carga las variables de entorno
 
-**Mac/Linux** (Terminal):
+**Mac/Linux**:
 ```bash
 export $(cat .env | grep -v '^#' | xargs)
 ```
 
-**Windows** (PowerShell):
+**Windows (PowerShell)**:
 ```powershell
 Get-Content .env | ForEach-Object {
     if ($_ -match '^(.+?)=(.+)$') {
@@ -472,15 +450,11 @@ Get-Content .env | ForEach-Object {
 }
 ```
 
-### Step 2: Build the Docker Image
-
-Build your container:
+### Paso 2: Construye la imagen Docker
 
 **Mac/Linux**:
 ```bash
-docker build \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
-  -t consultation-app .
+docker build   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"   -t consultation-app .
 ```
 
 **Windows PowerShell**:
@@ -490,17 +464,13 @@ docker build `
   -t consultation-app .
 ```
 
-This will take 2-3 minutes the first time.
+La primera vez toma 2-3 minutos.
 
-### Step 3: Run Locally
+### Paso 3: Ejecuta localmente
 
 **Mac/Linux**:
 ```bash
-docker run -p 8000:8000 \
-  -e CLERK_SECRET_KEY="$CLERK_SECRET_KEY" \
-  -e CLERK_JWKS_URL="$CLERK_JWKS_URL" \
-  -e OPENAI_API_KEY="$OPENAI_API_KEY" \
-  consultation-app
+docker run -p 8000:8000   -e CLERK_SECRET_KEY="$CLERK_SECRET_KEY"   -e CLERK_JWKS_URL="$CLERK_JWKS_URL"   -e OPENAI_API_KEY="$OPENAI_API_KEY"   consultation-app
 ```
 
 **Windows PowerShell**:
@@ -512,394 +482,333 @@ docker run -p 8000:8000 `
   consultation-app
 ```
 
-### Step 4: Test Your Application
+### Paso 4: Prueba la aplicación
 
-1. Open browser to `http://localhost:8000`
-2. Sign in with your Clerk account
-3. Test the consultation form
-4. Verify everything works!
+1. Abre `http://localhost:8000`
+2. Inicia sesión con Clerk
+3. Completa el formulario de consulta
+4. Verifica que todo funcione
 
-**To stop**: Press `Ctrl+C` in the terminal
+Para detener: `Ctrl+C`
 
-✅ **Checkpoint**: Application works identically to Vercel version
+✅ **Punto de control**: La app se comporta igual que en Vercel
 
-## Part 6: Deploy to AWS
+## Parte 6: Despliega en AWS
 
-Now let's deploy our container to AWS App Runner!
+### Paso 1: Crea un repositorio ECR
 
-### Step 1: Create ECR Repository
+1. En la consola, busca **ECR**
+2. Haz clic en **Create repository**
+3. Verifica que estés en la región correcta
+4. Configuración:
+   - Visibilidad: **Private**
+   - Nombre: `consultation-app`
+   - Resto por defecto
+5. Crea el repositorio y verifica que aparezca
 
-ECR (Elastic Container Registry) is where we'll store our Docker image.
+### Paso 2: Configura AWS CLI
 
-1. In AWS Console, search for **ECR**
-2. Click **Get started** or **Create repository**
-3. **Important**: Make sure you're in the correct region (top right of AWS Console - should match your DEFAULT_AWS_REGION)
-4. Settings:
-   - Visibility settings: **Private**
-   - Repository name: `consultation-app` (must match exactly!)
-   - Leave all other settings as default
-5. Click **Create repository**
-6. **Verify**: You should see your new `consultation-app` repository in the list
+#### Crea claves de acceso
 
-### Step 2: Set Up AWS CLI
+1. En IAM → Users → `aiengineer`
+2. Abre la pestaña **Security credentials**
+3. En **Access keys**, pulsa **Create access key**
+4. Selecciona **Command Line Interface (CLI)**
+5. Marca la casilla de confirmación → **Next**
+6. Descripción: `Docker push access`
+7. Haz clic en **Create access key**
+8. **Crucial**: descarga el CSV o copia ambos valores
+9. Pulsa **Done**
 
-We need AWS CLI to push our image.
+#### Configura AWS CLI
 
-#### Create Access Keys
-
-1. In AWS Console, go to **IAM**
-2. Click **Users** → click on `aiengineer`
-3. Click **Security credentials** tab
-4. Under **Access keys**, click **Create access key**
-5. Select **Command Line Interface (CLI)**
-6. Check the confirmation box → **Next**
-7. Description: `Docker push access`
-8. Click **Create access key**
-9. **Critical**: Download CSV or copy both:
-   - Access key ID (like: `AKIAIOSFODNN7EXAMPLE`)
-   - Secret access key (like: `wJalrXUtnFEMI/K7MDENG/bPxRfiCY`)
-10. Click **Done**
-
-#### Configure AWS CLI
-
-Install AWS CLI if you haven't:
-- **Mac**: `brew install awscli` or download from [aws.amazon.com/cli](https://aws.amazon.com/cli/)
-- **Windows**: Download installer from [aws.amazon.com/cli](https://aws.amazon.com/cli/)
-
-Configure it:
+Instala AWS CLI si hace falta y ejecuta:
 ```bash
 aws configure
 ```
 
-Enter:
-- AWS Access Key ID: (paste your key)
-- AWS Secret Access Key: (paste your secret)
-- Default region: Choose based on your location:
-  - **US East Coast**: `us-east-1` (N. Virginia)
-  - **US West Coast**: `us-west-2` (Oregon)
-  - **Europe**: `eu-west-1` (Ireland)
-  - **Asia**: `ap-southeast-1` (Singapore)
-  - **Pick the closest region for best performance!**
-- Default output format: `json`
+Introduce:
+- AWS Access Key ID: (pega tu clave)
+- AWS Secret Access Key: (pega tu secreto)
+- Región por defecto (elige la más cercana)
+- Formato por defecto: `json`
 
-**Important**: Remember your region choice - you'll use it throughout this course!
+### Paso 3: Envía la imagen a ECR
 
-### Step 3: Push Image to ECR
-
-1. In ECR console, click your `consultation-app` repository
-2. Click **View push commands**
-3. Since you already have your AWS info in `.env`, let's use it!
-
-**First, make sure your environment variables are loaded** (from Part 5, Step 1).
-
-**Understanding the authentication**: The first command gets a temporary password from AWS and pipes it to Docker. You won't be prompted for a password - it's all automatic!
+Asegúrate de tener tus variables (`.env`) cargadas.
 
 **Mac/Linux**:
 ```bash
-# 1. Authenticate Docker to ECR (using your .env values!)
+# 1. Autentica Docker contra ECR
 aws ecr get-login-password --region $DEFAULT_AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com
 
-# 2. Build for Linux/AMD64 (CRITICAL for Apple Silicon Macs!)
-docker build \
-  --platform linux/amd64 \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
-  -t consultation-app .
+# 2. Construye para Linux/AMD64 (CRÍTICO en Mac Apple Silicon)
+docker build   --platform linux/amd64   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"   -t consultation-app .
 
-# 3. Tag your image (using your .env values!)
+# 3. Etiqueta la imagen para tu repositorio
 docker tag consultation-app:latest $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com/consultation-app:latest
 
-# 4. Push to ECR
+# 4. Haz push a ECR
 docker push $AWS_ACCOUNT_ID.dkr.ecr.$DEFAULT_AWS_REGION.amazonaws.com/consultation-app:latest
 ```
 
 **Windows PowerShell**:
 ```powershell
-# 1. Authenticate Docker to ECR (using your .env values!)
+# 1. Autentica Docker contra ECR
 aws ecr get-login-password --region $env:DEFAULT_AWS_REGION | docker login --username AWS --password-stdin "$env:AWS_ACCOUNT_ID.dkr.ecr.$env:DEFAULT_AWS_REGION.amazonaws.com"
 
-# 2. Build for Linux/AMD64
+# 2. Construye para Linux/AMD64
 docker build `
   --platform linux/amd64 `
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$env:NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" `
   -t consultation-app .
 
-# 3. Tag your image (using your .env values!)
+# 3. Etiqueta la imagen
 docker tag consultation-app:latest "$env:AWS_ACCOUNT_ID.dkr.ecr.$env:DEFAULT_AWS_REGION.amazonaws.com/consultation-app:latest"
 
-# 4. Push to ECR
+# 4. Haz push a ECR
 docker push "$env:AWS_ACCOUNT_ID.dkr.ecr.$env:DEFAULT_AWS_REGION.amazonaws.com/consultation-app:latest"
 ```
 
-**Note for Apple Silicon (M1/M2/M3) Macs**: The `--platform linux/amd64` flag is ESSENTIAL. Without it, your container won't run on AWS!
+El push tardará 2-5 minutos. Verifica en ECR que exista la imagen `latest`.
 
-The push will take 2-5 minutes depending on your internet speed.
+✅ **Punto de control**: Debes ver la imagen en ECR
 
-✅ **Checkpoint**: In ECR console, you should see your image with tag `latest`
+## Parte 7: Crea el servicio de App Runner
 
-## Part 7: Create App Runner Service
+### Paso 1: Inicia App Runner
 
-### Step 1: Launch App Runner
+1. Busca **App Runner** en la consola
+2. Haz clic en **Create service**
 
-1. In AWS Console, search for **App Runner**
-2. Click **Create service**
+### Paso 2: Configura la fuente
 
-### Step 2: Configure Source
+1. Repository type: **Container registry**
+2. Provider: **Amazon ECR**
+3. Selecciona `consultation-app` → etiqueta `latest`
+4. Deployment trigger: **Manual**
+5. ECR access role: **Create new service role**
+6. Pulsa **Next**
 
-1. **Source**:
-   - Repository type: **Container registry**
-   - Provider: **Amazon ECR**
-2. Click **Browse** 
-3. Select `consultation-app` → Select `latest` tag
-4. **Deployment settings**:
-   - Deployment trigger: **Manual** (to control costs)
-   - ECR access role: **Create new service role**
-5. Click **Next**
-
-### Step 3: Configure Service
+### Paso 3: Configura el servicio
 
 1. **Service name**: `consultation-app-service`
+2. **vCPU y memoria**: 0.25 vCPU / 0.5 GB
+3. **Environment variables**:
+   - `CLERK_SECRET_KEY`
+   - `CLERK_JWKS_URL`
+   - `OPENAI_API_KEY`
+4. **Port**: `8000`
+5. **Auto scaling**: mínimo 1, máximo 1 (para controlar costos)
+6. Pulsa **Next**
 
-2. **Virtual CPU & memory**:
-   - vCPU: `0.25 vCPU`
-   - Memory: `0.5 GB`
+### Paso 4: Configura el health check
 
-3. **Environment variables** - Click **Add environment variable** for each:
-   - `CLERK_SECRET_KEY` = (paste your value)
-   - `CLERK_JWKS_URL` = (paste your value)  
-   - `OPENAI_API_KEY` = (paste your value)
+1. Protocolo: HTTP
+2. Path: `/health`
+3. Intervalo: 20 s
+4. Timeout: 5 s
+5. Healthy threshold: 2
+6. Unhealthy threshold: 5
 
-   Note: We don't need `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` here - it's baked into the static files!
+Pulsa **Next**
 
-4. **Port**: `8000` (Important: our FastAPI server runs on 8000)
+### Paso 5: Revisa y crea
 
-5. **Auto scaling**:
-   - Minimum size: `1` (AWS requires at least 1 instance)
-   - Maximum size: `1` (keeps costs low)
+1. Revisa todos los ajustes
+2. Haz clic en **Create & deploy**
+3. Espera 5-10 minutos
+4. El estado pasará a “Running”
 
-6. Click **Next**
+✅ **Punto de control**: Servicio con check verde
 
-### Step 4: Configure Health Check
+### Paso 6: Accede a la aplicación
 
-1. **Health check configuration**:
-   - Protocol: **HTTP**
-   - Path: `/health`
-   - Interval: `20` seconds (maximum allowed)
-   - Timeout: `5` seconds
-   - Healthy threshold: `2`
-   - Unhealthy threshold: `5`
+1. Haz clic en el **Default domain** (ej. `abc123.us-east-1.awsapprunner.com`)
+2. La app debería cargar con HTTPS automático
+3. Prueba todo: iniciar sesión, generar resumen, cerrar sesión
 
-2. Click **Next**
+🎉 ¡Tu app sanitaria ya corre en AWS!
 
-### Step 5: Review and Create
+## Parte 8: Monitoreo y depuración
 
-1. Review all settings
-2. Click **Create & deploy**
-3. **Wait 5-10 minutes** - watch the Events log
-4. Status will change from "Operation in progress" to "Running"
+### Ver logs
 
-✅ **Checkpoint**: Service shows "Running" with green checkmark
+1. En tu servicio App Runner, abre la pestaña **Logs**
+2. **Application logs**: salida de tu app
+3. **System logs**: logs de despliegue/infraestructura
+4. Haz clic en **View in CloudWatch** para más detalle
 
-### Step 6: Access Your Application
+### Problemas comunes y soluciones
 
-1. Click on the **Default domain** URL (like: `abc123.YOUR-REGION.awsapprunner.com`)
-2. Your app should load with HTTPS automatically enabled!
-3. Test all functionality:
-   - Sign in with Clerk
-   - Create a consultation summary
-   - Sign out
+**Estado “Unhealthy”**:
+- Revisa los logs de la aplicación por errores de Python
+- Verifica variables de entorno
+- Asegura que el health check use `/health`
 
-🎉 **Congratulations!** Your healthcare app is now running on AWS!
+**“Authentication failed”**:
+- Revisa las variables de Clerk
+- Confirma que la JWKS URL sea correcta
+- Consulta los logs en CloudWatch
 
-## Part 8: Monitoring and Debugging
+**La página no carga**:
+- Verifica que el puerto sea 8000
+- Confirma que la imagen se construyó con `--platform linux/amd64`
+- Asegura que los archivos estáticos se sirvan correctamente
 
-### View Logs
+## Parte 9: Actualiza tu aplicación
 
-1. In your App Runner service, click **Logs** tab
-2. **Application logs**: Your app's console output
-3. **System logs**: Deployment and infrastructure logs
-4. Click **View in CloudWatch** for detailed analysis
+Cuando realices cambios:
 
-### Common Issues and Solutions
-
-**"Unhealthy" status**:
-- Check application logs for Python errors
-- Verify all environment variables are set
-- Ensure health check path is `/health`
-
-**"Authentication failed"**:
-- Double-check Clerk environment variables
-- Verify JWKS URL is correct
-- Check CloudWatch logs for specific errors
-
-**Page not loading**:
-- Ensure port is set to `8000`
-- Check that Docker image was built with `--platform linux/amd64`
-- Verify static files are being served
-
-## Part 9: Updating Your Application
-
-When you make code changes:
-
-### Step 1: Rebuild and Push
+### Paso 1: Recompila y publica
 
 **Mac/Linux**:
 ```bash
-# 1. Rebuild with platform flag
-docker build \
-  --platform linux/amd64 \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" \
-  -t consultation-app .
+# 1. Recompila con el flag de plataforma
+docker build   --platform linux/amd64   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"   -t consultation-app .
 
-# 2. Tag for ECR (use your account ID and region from .env file)
+# 2. Etiqueta para ECR
 docker tag consultation-app:latest YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/consultation-app:latest
 
-# 3. Push to ECR
+# 3. Haz push a ECR
 docker push YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/consultation-app:latest
 ```
 
 **Windows PowerShell**:
 ```powershell
-# 1. Rebuild with platform flag
+# 1. Recompila con el flag de plataforma
 docker build `
   --platform linux/amd64 `
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="$env:NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" `
   -t consultation-app .
 
-# 2. Tag for ECR (use your account ID and region from .env file)
+# 2. Etiqueta para ECR
 docker tag consultation-app:latest YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/consultation-app:latest
 
-# 3. Push to ECR
+# 3. Haz push a ECR
 docker push YOUR-ACCOUNT-ID.dkr.ecr.YOUR-REGION.amazonaws.com/consultation-app:latest
 ```
 
-### Step 2: Deploy Update
+### Paso 2: Despliega la actualización
 
-1. Go to App Runner console
-2. Click your service
-3. Click **Deploy**
-4. Wait for deployment to complete
+1. Ve a la consola de App Runner
+2. Haz clic en tu servicio
+3. Pulsa **Deploy**
+4. Espera a que finalice el despliegue
 
-## Cost Management
+## Gestión de costos
 
-### What This Costs
+### ¿Cuánto cuesta?
 
-With our minimal configuration (1 instance always running):
-- App Runner: ~$0.007/hour = ~$5/month for continuous running
-- ECR: ~$0.10/GB/month for image storage
-- Total: ~$5-6/month
+Con nuestra configuración mínima (1 instancia siempre activa):
+- App Runner: ~$0.007/h ≈ ~$5/mes
+- ECR: ~$0.10/GB/mes
+- Total: ~$5-6/mes
 
-**Note**: AWS App Runner requires at least 1 instance running, so you'll pay for continuous availability. To save money, you can pause the service when not in use.
+App Runner requiere al menos 1 instancia corriendo, así que pagarás disponibilidad continua. Para ahorrar, pausa el servicio cuando no lo uses.
 
-### How to Save Money
+### Cómo ahorrar dinero
 
-1. **Pause when not using**: Pause your App Runner service (Actions → Pause service)
-2. **Use free tier**: New AWS accounts get credits
-3. **Monitor budgets**: Check your email for alerts
-4. **Clean up ECR**: Delete old image versions
+1. **Pausa cuando no lo uses**: Actions → **Pause service**
+2. **Aprovecha el free tier**: las cuentas nuevas reciben créditos
+3. **Monitorea los presupuestos**: revisa tu email
+4. **Limpia ECR**: elimina imágenes antiguas
 
-### Emergency Cost Control
+### Control de costos de emergencia
 
-If you hit budget alerts:
-1. Go to App Runner → Select service → **Actions** → **Pause service**
-2. Review CloudWatch logs for any issues
-3. Check ECR for multiple image versions (delete old ones)
+Si recibes alertas:
+1. Ve a App Runner → Actions → **Pause service**
+2. Revisa los logs en CloudWatch
+3. Verifica en ECR si hay múltiples versiones (borra las viejas)
 
-## What You've Accomplished
+## Lo que has logrado
 
-You've successfully:
-- ✅ Created a production AWS account with security best practices
-- ✅ Containerized a full-stack application with Docker
-- ✅ Deployed to AWS App Runner with HTTPS and monitoring
-- ✅ Set up cost controls and budget alerts
-- ✅ Learned professional deployment patterns
+Has conseguido:
+- ✅ Crear una cuenta AWS segura siguiendo buenas prácticas
+- ✅ Contenerizar una app full-stack con Docker
+- ✅ Desplegar en AWS App Runner con HTTPS y monitoreo
+- ✅ Configurar controles y alertas de costo
+- ✅ Aprender patrones profesionales de despliegue
 
-## Architecture Comparison: Vercel vs AWS
+## Comparación de arquitectura: Vercel vs AWS
 
-**Vercel Architecture**:
-- Next.js runs on Vercel's servers
-- API routes handled by Vercel Functions
-- Automatic deployments from Git
-- Zero-config setup
+**Vercel**:
+- Next.js corre en los servidores de Vercel
+- Las rutas API se ejecutan como Functions
+- Deploys automáticos desde Git
+- Configuración cero
 
-**AWS Architecture**:
-- Everything runs in a single Docker container
-- FastAPI serves both API and static files
-- Manual deployments (or automated with CI/CD)
-- Full control over infrastructure
+**AWS**:
+- Todo corre en un contenedor Docker
+- FastAPI sirve API y archivos estáticos
+- Deploy manual (o vía CI/CD)
+- Control total de la infraestructura
 
-Both are valid approaches! Vercel optimizes for developer experience, while AWS offers more control and flexibility.
+Ambos enfoques son válidos: Vercel optimiza la experiencia del desarrollador, AWS ofrece control y flexibilidad.
 
-## Next Steps
+## Próximos pasos
 
-### Immediate Improvements
-1. **Custom domain**: Add your own domain in App Runner settings
-2. **Auto-deployment**: Set up GitHub Actions for automated deployments
-3. **Monitoring**: Add CloudWatch alarms for errors
+### Mejoras inmediatas
+1. **Dominio personalizado**: configúralo en App Runner
+2. **Auto-deploy**: crea un flujo con GitHub Actions
+3. **Monitoreo**: agrega alarmas de CloudWatch
 
-### Advanced Enhancements
-1. **Database**: Add Amazon RDS for data persistence
-2. **File storage**: Use S3 for user uploads
-3. **Caching**: Add ElastiCache for performance
-4. **CDN**: Use CloudFront for global distribution
-5. **Secrets Manager**: Store sensitive data securely
+### Mejoras avanzadas
+1. **Base de datos**: integra Amazon RDS
+2. **Almacenamiento de archivos**: usa S3
+3. **Caching**: agrega ElastiCache
+4. **CDN**: distribuye con CloudFront
+5. **Secretos**: mueve credenciales a Secrets Manager
 
-## Troubleshooting Reference
+## Referencia de resolución de problemas
 
-### Docker Issues
+### Problemas con Docker
 
 **"Cannot connect to Docker daemon"**:
+- Asegúrate de que Docker Desktop esté ejecutándose (icono de ballena)
+
+**"Exec format error"**:
+- Olvidaste `--platform linux/amd64`. Recompila con ese flag
+
+### Problemas con AWS
+
+**"Unauthorized" al hacer push a ECR**:
 ```bash
-# Make sure Docker Desktop is running
-# Mac: Check for whale icon in menu bar
-# Windows: Check system tray
+aws ecr get-login-password --region TU-REGION | docker login --username AWS --password-stdin TU-ECR-URL
 ```
 
-**"Exec format error" when running container**:
-```bash
-# You forgot --platform flag. Rebuild:
-docker build --platform linux/amd64 ...
-```
+**"Access Denied"**:
+- Comprueba que tu usuario IAM tenga las políticas necesarias
+- Verifica que AWS CLI use las credenciales correctas
 
-### AWS Issues
+### Problemas con la aplicación
 
-**"Unauthorized" in ECR push**:
-```bash
-# Re-authenticate (use your region):
-aws ecr get-login-password --region YOUR-REGION | docker login --username AWS --password-stdin [your-ecr-url]
-```
+**Clerk no autentica**:
+- Verifica las tres variables de Clerk
+- Asegura que la JWKS URL coincida con tu app
+- Confirma que el frontend se compiló con la publishable key
 
-**"Access Denied" errors**:
-- Check IAM user has all required policies
-- Verify AWS CLI is configured with correct credentials
+**Las llamadas a la API fallan**:
+- Revisa la consola del navegador por errores CORS
+- Verifica que la ruta sea `/api/consultation`
+- Consulta los logs de CloudWatch para errores de Python
 
-### Application Issues
+## Conclusión
 
-**Clerk authentication not working**:
-- Verify all three Clerk environment variables
-- Check JWKS URL matches your Clerk app
-- Ensure frontend was built with public key
+¡Felicidades por desplegar tu SaaS sanitario en AWS! Aprendiste:
 
-**API calls failing**:
-- Check browser console for CORS errors
-- Verify `/api/consultation` path is correct
-- Check CloudWatch logs for Python errors
+1. **Conceptos base de Docker** para contenerizar aplicaciones
+2. **Fundamentos de AWS** (IAM, ECR, App Runner)
+3. **Despliegues de producción** con seguridad, monitoreo y control de costos
+4. **Prácticas DevOps** como health checks, logging y preparación para CI/CD
 
-## Conclusion
+Así es como los equipos profesionales despliegan aplicaciones reales. ¡Ahora tienes las habilidades para desplegar cualquier aplicación contenerizada en AWS!
 
-Congratulations on deploying your healthcare SaaS to AWS! You've learned:
+## Recursos
 
-1. **Docker basics** - containerizing applications
-2. **AWS fundamentals** - IAM, ECR, App Runner
-3. **Production deployment** - security, monitoring, cost control
-4. **DevOps practices** - CI/CD preparation, logging, health checks
-
-This is how professional engineering teams deploy production applications. You now have the skills to deploy any containerized application to AWS!
-
-## Resources
-
-- [AWS App Runner Documentation](https://docs.aws.amazon.com/apprunner/)
-- [Docker Documentation](https://docs.docker.com/)
+- [Documentación de AWS App Runner](https://docs.aws.amazon.com/apprunner/)
+- [Documentación de Docker](https://docs.docker.com/)
 - [AWS Free Tier](https://aws.amazon.com/free/)
 - [AWS Cost Management](https://aws.amazon.com/aws-cost-management/)
 
-Remember to monitor your AWS costs and pause/delete resources when not in use. Happy deploying! 🚀
+Recuerda monitorear tus costos de AWS y pausar o eliminar recursos cuando no los uses. ¡Felices despliegues! 🚀

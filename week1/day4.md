@@ -1,36 +1,36 @@
-# Day 4: Healthcare Consultation Assistant
+# Día 4: Asistente de Consultas Médicas
 
-## Build a Professional Healthcare Application
+## Construye una aplicación sanitaria profesional
 
-Today, you'll transform your SaaS into a healthcare consultation assistant that helps doctors generate patient summaries, action items, and patient-friendly emails from their visit notes.
+Hoy transformarás tu SaaS en un asistente de consultas médicas que ayude a los doctores a generar resúmenes de pacientes, acciones siguientes y correos amigables a partir de sus notas de visita.
 
-## What You'll Build
+## Lo que construirás
 
-A healthcare application that:
-- Takes doctor's consultation notes as input
-- Generates professional summaries for medical records
-- Creates actionable next steps for the doctor
-- Drafts patient-friendly email communications
-- Uses structured forms with date pickers
-- Streams AI-generated content in real-time
+Una aplicación sanitaria que:
+- Recibe como entrada las notas de la consulta del médico
+- Genera resúmenes profesionales para el expediente
+- Crea próximos pasos accionables para el doctor
+- Redacta correos claros y comprensibles para el paciente
+- Usa formularios estructurados con selectores de fecha
+- Transmite contenido generado por IA en tiempo real
 
-## Prerequisites
+## Requisitos previos
 
-- Completed Day 3 (authentication and subscriptions working)
-- Your app deployed to Vercel
+- Haber completado el Día 3 (autenticación y suscripciones funcionando)
+- Tu app desplegada en Vercel
 
-## Step 1: Install Additional Dependencies
+## Paso 1: Instala dependencias adicionales
 
-We need a date picker for the consultation form:
+Necesitamos un selector de fecha para el formulario de consulta:
 
 ```bash
 npm install react-datepicker
 npm install --save-dev @types/react-datepicker
 ```
 
-## Step 2: Update the Backend API
+## Paso 2: Actualiza la API del backend
 
-Replace `api/index.py` with a new endpoint that handles consultation data:
+Reemplaza `api/index.py` con un nuevo endpoint que maneje los datos de la consulta:
 
 ```python
 import os
@@ -103,14 +103,14 @@ def consultation_summary(
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 ```
 
-Note the key changes:
-- Changed from `@app.get("/api")` to `@app.post("/api")` to accept form data
-- Added a `Visit` model to validate incoming data
-- Structured prompts for healthcare-specific output
+Observa los cambios clave:
+- Cambiamos de `@app.get("/api")` a `@app.post("/api")` para aceptar datos del formulario
+- Añadimos un modelo `Visit` para validar la entrada
+- Estructuramos los prompts para producir salida específica del ámbito sanitario
 
-## Step 3: Update Application Configuration
+## Paso 3: Actualiza la configuración de la aplicación
 
-First, import the date picker styles in `pages/_app.tsx`:
+Primero, importa los estilos del date picker en `pages/_app.tsx`:
 
 ```typescript
 import { ClerkProvider } from '@clerk/nextjs';
@@ -127,7 +127,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 }
 ```
 
-Now update `pages/_document.tsx` to reflect the healthcare focus:
+Ahora actualiza `pages/_document.tsx` para reflejar el enfoque sanitario:
 
 ```typescript
 import { Html, Head, Main, NextScript } from 'next/document';
@@ -148,9 +148,9 @@ export default function Document() {
 }
 ```
 
-## Step 4: Create the Consultation Form
+## Paso 4: Crea el formulario de consulta
 
-Replace `pages/product.tsx` with the new healthcare interface:
+Reemplaza `pages/product.tsx` con la nueva interfaz sanitaria:
 
 ```typescript
 "use client"
@@ -326,9 +326,9 @@ export default function Product() {
 }
 ```
 
-## Step 5: Update the Landing Page
+## Paso 5: Actualiza la landing page
 
-Update `pages/index.tsx` to reflect the healthcare focus:
+Actualiza `pages/index.tsx` para reflejar el enfoque sanitario:
 
 ```typescript
 "use client"
@@ -422,15 +422,10 @@ export default function Home() {
           <SignedIn>
             <Link href="/product">
               <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all transform hover:scale-105">
-                Open Consultation Assistant
+                Access Premium Features
               </button>
             </Link>
           </SignedIn>
-        </div>
-
-        {/* Trust Indicators */}
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>HIPAA Compliant • Secure • Professional</p>
         </div>
       </div>
     </main>
@@ -438,36 +433,32 @@ export default function Home() {
 }
 ```
 
-## Step 6: Update Backend Dependencies
+## Paso 6: Actualiza el backend para la nueva experiencia
 
-Make sure `requirements.txt` includes Pydantic for data validation:
-
-```
-fastapi
-uvicorn
-openai
-fastapi-clerk-auth
-pydantic
-```
-
-## Step 7: Deploy Your Healthcare App
-
-Deploy your transformed application:
+Asegúrate de que tu archivo `api/index.py` esté desplegado en Vercel (ver Paso 2). Ejecuta:
 
 ```bash
 vercel --prod
 ```
 
-## Step 8: Test the Consultation Flow
+## Paso 7: Despliega la nueva interfaz
 
-1. Visit your production URL
-2. Sign in with your account
-3. Navigate to the consultation form
-4. Try entering sample consultation notes:
+Actualiza tu aplicación en Vercel para poner en producción la UI centrada en salud:
 
-**Example Input:**
+```bash
+vercel --prod
+```
+
+## Paso 8: Prueba el flujo de consultas
+
+1. Visita tu URL de producción
+2. Inicia sesión con tu cuenta
+3. Navega al formulario de consulta
+4. Prueba ingresando notas de ejemplo:
+
+**Ejemplo de entrada:**
 - **Patient Name:** Jane Smith
-- **Date:** Today's date
+- **Date:** Fecha de hoy
 - **Notes:** 
   ```
   Patient presents with persistent cough for 2 weeks. No fever. 
@@ -476,70 +467,70 @@ vercel --prod
   Follow up if symptoms persist beyond another week.
   ```
 
-You'll receive:
-1. A professional summary for medical records
-2. Clear next steps for the doctor
-3. A patient-friendly email draft
+Recibirás:
+1. Un resumen profesional para el expediente
+2. Próximos pasos claros para el médico
+3. Un borrador de correo comprensible para el paciente
 
-## What's Happening?
+## ¿Qué está pasando?
 
-Your healthcare app now:
-- **Accepts structured input**: Form data with patient name, date, and notes
-- **Validates data**: Using Pydantic models on the backend
-- **Generates structured output**: Three distinct sections for different purposes
-- **Maintains security**: All data is transmitted with JWT authentication
-- **Supports subscriptions**: Only premium users can access the tool
+Tu app sanitaria ahora:
+- **Acepta entrada estructurada**: formulario con nombre del paciente, fecha y notas
+- **Valida los datos**: modelos Pydantic en el backend
+- **Genera salida formateada**: tres secciones distintas para diferentes usos
+- **Mantiene la seguridad**: todos los datos se envían con autenticación JWT
+- **Soporta suscripciones**: solo las personas premium acceden a la herramienta
 
-## Architecture Changes from Day 3
+## Cambios de arquitectura respecto al Día 3
 
-1. **POST instead of GET**: The API now accepts form data via POST requests
-2. **Structured prompts**: System and user prompts guide the AI output format
-3. **Form validation**: Both frontend (required fields) and backend (Pydantic) validation
-4. **Date handling**: Proper date picker with ISO format conversion
-5. **Professional UI**: Healthcare-focused design with clear sections
+1. **POST en vez de GET**: la API ahora recibe datos del formulario vía POST
+2. **Prompts estructurados**: el system prompt y user prompt guían el formato de salida
+3. **Validación del formulario**: validación en frontend (campos requeridos) y backend (Pydantic)
+4. **Manejo de fechas**: selector con formato ISO
+5. **UI profesional**: diseño con foco sanitario y secciones claras
 
-## Security Considerations
+## Consideraciones de seguridad
 
-**Important:** This is a demonstration application. For production healthcare use:
-- Implement proper HIPAA compliance measures
-- Add data encryption at rest and in transit
-- Implement audit logging for all access
-- Add role-based access control (doctor vs admin)
-- Ensure proper data retention policies
-- Add patient consent management
+**Importante:** Esta es una aplicación demostrativa. Para uso sanitario en producción:
+- Implementa medidas completas de cumplimiento HIPAA
+- Añade cifrado de datos en reposo y en tránsito
+- Implementa registros de auditoría para todos los accesos
+- Añade control de acceso basado en roles (doctor vs. admin)
+- Define políticas adecuadas de retención de datos
+- Gestiona el consentimiento del paciente
 
-## Troubleshooting
+## Resolución de problemas
 
-### "Method not allowed" error
-- Make sure the API endpoint uses `@app.post("/api")` not `@app.get("/api")`
-- Verify the fetch request uses `method: 'POST'`
+### Error "Method not allowed"
+- Asegúrate de que el endpoint use `@app.post("/api")` y no `@app.get("/api")`
+- Verifica que la petición fetch tenga `method: 'POST'`
 
-### Date picker not styled correctly
-- Ensure `react-datepicker/dist/react-datepicker.css` is imported in `pages/_app.tsx`
-- Check that the date picker has the correct className for Tailwind styling
+### El date picker no se estiliza correctamente
+- Confirma que `react-datepicker/dist/react-datepicker.css` se importe en `pages/_app.tsx`
+- Comprueba que el date picker tenga la clase de Tailwind adecuada
 
-### Form data not sending
-- Check browser console for errors
-- Verify all required fields are filled
-- Ensure the JWT token is being retrieved successfully
+### Los datos del formulario no se envían
+- Revisa la consola del navegador en busca de errores
+- Verifica que todos los campos requeridos tengan valores
+- Asegúrate de que se obtenga correctamente el token JWT
 
-### Output not formatting correctly
-- Make sure the markdown-content styles are applied (from Day 2)
-- Verify ReactMarkdown plugins are imported
+### La salida no se formatea bien
+- Asegura que los estilos de `markdown-content` sigan presentes (del Día 2)
+- Verifica que los plugins de ReactMarkdown estén importados
 
-## Customization Ideas
+## Ideas de personalización
 
-### Add More Fields
+### Añadir más campos
 ```typescript
-// Add specialty selection
+// Añadir selección de especialidad
 const [specialty, setSpecialty] = useState('General Practice');
 
-// Add urgency level
+// Añadir nivel de urgencia
 const [urgency, setUrgency] = useState<'routine' | 'urgent' | 'emergency'>('routine');
 ```
 
-### Enhanced Templates
-Create different prompt templates for different specialties:
+### Plantillas mejoradas
+Crea distintos prompts según la especialidad:
 ```python
 def get_system_prompt(specialty: str) -> str:
     prompts = {
@@ -550,8 +541,8 @@ def get_system_prompt(specialty: str) -> str:
     return prompts.get(specialty, system_prompt)
 ```
 
-### Export Options
-Add buttons to export the generated content:
+### Opciones de exportación
+Añade botones para exportar el contenido generado:
 ```typescript
 const handleExportPDF = () => {
     // Generate PDF from markdown
@@ -562,22 +553,22 @@ const handleCopyEmail = () => {
 };
 ```
 
-## Next Steps
+## Próximos pasos
 
-Congratulations! You've built a professional healthcare consultation assistant with:
-- ✅ Structured medical data input
-- ✅ AI-powered content generation
-- ✅ Professional and patient-friendly outputs
-- ✅ Secure authentication and subscriptions
-- ✅ Modern, accessible UI
+¡Felicidades! Construiste un asistente profesional de consultas médicas con:
+- ✅ Entrada estructurada de datos clínicos
+- ✅ Generación de contenido impulsada por IA
+- ✅ Salidas profesionales y orientadas al paciente
+- ✅ Autenticación segura y suscripciones
+- ✅ UI moderna y accesible
 
-### Potential Enhancements
+### Posibles mejoras
 
-1. **Template library**: Pre-built templates for common conditions
-2. **Voice input**: Dictation support for notes
-3. **Multi-language**: Support for patient emails in different languages
-4. **Integration**: Connect with EHR systems
-5. **Analytics**: Track consultation patterns and time saved
-6. **Collaboration**: Allow multiple doctors to share templates
+1. **Biblioteca de plantillas**: plantillas prediseñadas para condiciones comunes
+2. **Entrada por voz**: soporte de dictado para las notas
+3. **Multilenguaje**: correos al paciente en distintos idiomas
+4. **Integraciones**: conexión con sistemas EHR
+5. **Analítica**: seguimiento de patrones de consulta y tiempo ahorrado
+6. **Colaboración**: permitir que varios doctores compartan plantillas
 
-Your healthcare assistant is ready to help medical professionals save time and improve patient communication!
+¡Tu asistente sanitario está listo para ayudar a profesionales médicos a ahorrar tiempo y mejorar la comunicación con sus pacientes!

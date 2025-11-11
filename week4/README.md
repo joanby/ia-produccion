@@ -1,15 +1,15 @@
-# Please return to the alex repo
+# Por favor regresa al repositorio de alex
 
-### Open in Cursor
+### Abrir en Cursor
 
-1. Launch Cursor
-2. Click **File** → **New Window**
-3. Click **Open Folder**
-4. Navigate to and select the `alex` folder
-5. Click **Open**
+1. Abre Cursor
+2. Haz clic en **File** → **New Window**
+3. Haz clic en **Open Folder**
+4. Navega y selecciona la carpeta `alex`
+5. Haz clic en **Open**
 
-You should now see the project structure in Cursor's file explorer on the left.
+Ahora deberías ver la estructura del proyecto en el explorador de archivos de Cursor (panel izquierdo).
 
-Then open the guides folder and select the next guide, 5_database.md (right click and open preview).
+Después abre la carpeta guides y selecciona la siguiente guía, 5_database.md (clic derecho y abre la vista previa).
 
-And prepare yourself for multi-agent joy!
+¡Y prepárate para la alegría multi-agente!
