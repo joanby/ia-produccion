@@ -67,8 +67,8 @@ app = FastAPI()
 def instant():
     client = OpenAI()
     message = """
-You are on a website that has just been deployed to production for the first time!
-Please reply with an enthusiastic announcement to welcome visitors to the site, explaining that it is live on production for the first time!
+¡Estás en un sitio web que acaba de entrar en producción por primera vez!
+Por favor, responde con un anuncio entusiasta para dar la bienvenida a los visitantes, explicando que el sitio está en producción por primera vez.
 """
     messages = [{"role": "user", "content": message}]
     response = client.chat.completions.create(model="gpt-5-nano", messages=messages)
