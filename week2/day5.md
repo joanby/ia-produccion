@@ -1,66 +1,66 @@
-# Day 5: CI/CD with GitHub Actions
+# Día 5: CI/CD con GitHub Actions
 
-## From Local Development to Professional DevOps
+## Del desarrollo local al DevOps profesional
 
-Welcome to the final day of Week 2! Today we're implementing the complete DevOps lifecycle - from version control to continuous deployment to infrastructure teardown. You'll set up GitHub Actions to automatically deploy your Digital Twin whenever you push code, manage multiple environments through a web interface, and ensure everything can be cleanly removed when you're done. This is how professional teams manage production infrastructure!
+¡Bienvenido al último día de la Semana 2! Hoy implementamos el ciclo DevOps completo: desde el control de versiones hasta el despliegue continuo y el desmontaje de la infraestructura. Configurarás GitHub Actions para desplegar automáticamente tu Gemelo Digital cada vez que hagas push de código, gestionarás múltiples entornos desde una interfaz web y te asegurarás de que todo pueda eliminarse de forma limpia al terminar. ¡Así es como los equipos profesionales gestionan la infraestructura en producción!
 
-## What You'll Learn Today
+## Qué aprenderás hoy
 
-- **Git and GitHub** - Version control for infrastructure and code
-- **Remote state management** - Terraform state in S3 with locking
-- **GitHub Actions** - CI/CD pipelines for automated deployment
-- **GitHub Secrets** - Secure credential management
-- **OIDC authentication** - Modern AWS authentication without long-lived keys
-- **Multi-environment workflows** - Automated and manual deployments
-- **Infrastructure cleanup** - Complete teardown strategies
+- **Git y GitHub** - Control de versiones para infraestructura y código
+- **Gestión de estado remoto** - Estado de Terraform en S3 con bloqueo
+- **GitHub Actions** - Pipelines CI/CD para despliegues automáticos
+- **GitHub Secrets** - Gestión segura de credenciales
+- **Autenticación OIDC** - Autenticación moderna en AWS sin claves persistentes
+- **Flujos multi-entorno** - Despliegues automáticos y manuales
+- **Limpieza de infraestructura** - Estrategias de desmontaje completo
 
-## Part 1: Clean Up Existing Infrastructure
+## Parte 1: Limpia la infraestructura existente
 
-Before setting up CI/CD, let's remove all existing environments to start fresh.
+Antes de configurar CI/CD, eliminemos todos los entornos existentes para empezar de cero.
 
-### Step 1: Destroy All Environments
+### Paso 1: Destruye todos los entornos
 
-We'll use the destroy scripts created on Day 4 to clean up dev, test, and prod environments.
+Utilizaremos los scripts de destrucción creados el Día 4 para limpiar los entornos dev, test y prod.
 
 **Mac/Linux:**
 ```bash
 
-# Destroy dev environment
+# Destruir entorno dev
 ./scripts/destroy.sh dev
 
-# Destroy test environment  
+# Destruir entorno test  
 ./scripts/destroy.sh test
 
-# Destroy prod environment (if you created one)
+# Destruir entorno prod (si lo creaste)
 ./scripts/destroy.sh prod
 ```
 
 **Windows (PowerShell):**
 ```powershell
 
-# Destroy dev environment
+# Destruir entorno dev
 .\scripts\destroy.ps1 -Environment dev
 
-# Destroy test environment
+# Destruir entorno test
 .\scripts\destroy.ps1 -Environment test
 
-# Destroy prod environment (if you created one)
+# Destruir entorno prod (si lo creaste)
 .\scripts\destroy.ps1 -Environment prod
 ```
 
-Each destruction will take 5-10 minutes as CloudFront distributions are removed.
+Cada destrucción tomará 5-10 minutos ya que se eliminan las distribuciones de CloudFront.
 
-### Step 2: Clean Up Terraform Workspaces
+### Paso 2: Limpia los workspaces de Terraform
 
-After resources are destroyed, remove the workspaces:
+Después de destruir los recursos, elimina los workspaces:
 
 ```bash
 cd terraform
 
-# Switch to default workspace
+# Cambia al workspace por defecto
 terraform workspace select default
 
-# Delete the workspaces
+# Elimina los workspaces
 terraform workspace delete dev
 terraform workspace delete test
 terraform workspace delete prod
@@ -68,21 +68,21 @@ terraform workspace delete prod
 cd ..
 ```
 
-### Step 3: Verify Clean State
+### Paso 3: Verifica el estado limpio
 
-1. Check AWS Console to ensure no twin-related resources remain:
-   - Lambda: No functions starting with `twin-`
-   - S3: No buckets starting with `twin-`
-   - API Gateway: No APIs starting with `twin-`
-   - CloudFront: No twin distributions
+1. Revisa la consola de AWS para asegurarte de que no quedan recursos relacionados con twin:
+   - Lambda: No debe haber funciones comenzando con `twin-`
+   - S3: No debe haber buckets comenzando con `twin-`
+   - API Gateway: No debe haber APIs comenzando con `twin-`
+   - CloudFront: No debe haber distribuciones de twin
 
-✅ **Checkpoint**: Your AWS account is now clean, ready for CI/CD deployment!
+✅ **Punto de control**: ¡Tu cuenta de AWS está limpia y lista para despliegue CI/CD!
 
-## Part 2: Initialize Git Repository
+## Parte 2: Inicializa el repositorio Git
 
-### Step 1: Create .gitignore
+### Paso 1: Crea `.gitignore`
 
-Ensure your `.gitignore` in the project root (`twin/.gitignore`) is complete:
+Asegúrate de que tu `.gitignore` en la raíz del proyecto (`twin/.gitignore`) sea completo:
 
 ```gitignore
 # Terraform
@@ -93,14 +93,14 @@ Ensure your `.gitignore` in the project root (`twin/.gitignore`) is complete:
 terraform.tfstate.d/
 *.tfvars.secret
 
-# Lambda packages
+# Paquetes Lambda
 lambda-deployment.zip
 lambda-package/
 
-# Memory storage (contains conversation history)
+# Almacenamiento de memoria (contiene el historial de conversaciones)
 memory/
 
-# Environment files
+# Archivos de entorno
 .env
 .env.*
 !.env.example
@@ -128,112 +128,112 @@ Thumbs.db
 .aws/
 ```
 
-### Step 2: Create Example Environment File
+### Paso 2: Crea archivo de entorno de ejemplo
 
-Create `.env.example` to help others understand required environment variables:
+Crea `.env.example` para ayudar a otros a entender las variables de entorno necesarias:
 
 ```bash
-# AWS Configuration
-AWS_ACCOUNT_ID=your_12_digit_account_id
+# Configuración de AWS
+AWS_ACCOUNT_ID=tu_ID_de_cuenta_de_12_dígitos
 DEFAULT_AWS_REGION=us-east-1
 
-# Project Configuration
+# Configuración del proyecto
 PROJECT_NAME=twin
 ```
 
-### Step 3: Initialize Git Repository
+### Paso 3: Inicializa el repositorio Git
 
-First, clean up any git repositories that might have been created by the tooling:
+Primero, limpia cualquier repositorio git que pueda haber sido creado por las herramientas:
 
 **Mac/Linux:**
 ```bash
 cd twin
 
-# Remove any git repos created by create-next-app or uv (if they exist)
+# Elimina cualquier repo git creado por create-next-app o uv (si existen)
 rm -rf frontend/.git backend/.git 2>/dev/null
 
-# Initialize git repository with main as the default branch
+# Inicializa el repositorio git con "main" como rama principal
 git init -b main
 
-# If you get an error that -b is not supported (older Git versions), use:
+# Si recibes un error de que -b no está soportado (versiones antiguas de git):
 # git init
 # git checkout -b main
 
-# Configure git (replace with your details)
-git config user.name "Your Name"
-git config user.email "your.email@example.com"
+# Configura git (cambia por tus datos)
+git config user.name "Tu Nombre"
+git config user.email "tu.email@ejemplo.com"
 ```
 
 **Windows (PowerShell):**
 ```powershell
 cd twin
 
-# Remove any git repos created by create-next-app or uv (if they exist)
+# Elimina cualquier repo git creado por create-next-app o uv (si existen)
 Remove-Item -Path frontend/.git -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path backend/.git -Recurse -Force -ErrorAction SilentlyContinue
 
-# Initialize git repository with main as the default branch
+# Inicializa el repositorio git con "main" como rama principal
 git init -b main
 
-# If you get an error that -b is not supported (older Git versions), use:
+# Si recibes un error de que -b no está soportado (versiones antiguas de git):
 # git init
 # git checkout -b main
 
-# Configure git (replace with your details)
-git config user.name "Your Name"
-git config user.email "your.email@example.com"
+# Configura git (cambia por tus datos)
+git config user.name "Tu Nombre"
+git config user.email "tu.email@ejemplo.com"
 ```
 
-After configuring git, continue with adding and committing files:
+Tras configurar git, continua agregando y registrando cambios:
 
 ```bash
-# Add all files
+# Agrega todos los archivos
 git add .
 
-# Create initial commit
-git commit -m "Initial commit: Digital Twin infrastructure and application"
+# Crea el commit inicial
+git commit -m "Commit inicial: Infraestructura y aplicación de Digital Twin"
 ```
 
-### Step 4: Create GitHub Repository
+### Paso 4: Crea repositorio en GitHub
 
-1. Go to [github.com](https://github.com) and sign in
-2. Click the **+** icon in the top right → **New repository**
-3. Configure your repository:
-   - Repository name: `digital-twin` (or your preferred name)
-   - Description: "AI Digital Twin deployed on AWS with Terraform"
-   - Public or Private: Your choice (private recommended if using real personal data)
-   - DO NOT initialize with README, .gitignore, or license
-4. Click **Create repository**
+1. Ve a [github.com](https://github.com) e inicia sesión
+2. Haz clic en el icono **+** arriba a la derecha → **New repository**
+3. Configura tu repositorio:
+   - Nombre del repositorio: `digital-twin` (o el que prefieras)
+   - Descripción: "AI Digital Twin desplegado en AWS con Terraform"
+   - Público o privado: elige (privado recomendado si usas datos personales reales)
+   - NO inicialices con README, .gitignore ni licencia
+4. Haz clic en **Create repository**
 
-### Step 5: Push to GitHub
+### Paso 5: Haz push a GitHub
 
-After creating the repository, GitHub will show you commands. Use these:
+Tras crear el repositorio, GitHub te mostrará los comandos a usar:
 
 ```bash
-# Add GitHub as remote (replace YOUR_USERNAME with your GitHub username)
+# Agrega GitHub como remoto (cambia YOUR_USERNAME por tu usuario de GitHub)
 git remote add origin https://github.com/YOUR_USERNAME/digital-twin.git
 
-# Push to GitHub (we're already on main branch from Step 3)
+# Haz push a GitHub (ya estás en la rama main)
 git push -u origin main
 ```
 
-If prompted for authentication:
-- Username: Your GitHub username
-- Password: Use a Personal Access Token (not your password)
-  - Go to GitHub → Settings → Developer settings → Personal access tokens
-  - Generate a token with `repo` scope
+Si se solicita autenticación:
+- Usuario: Tu usuario de GitHub
+- Contraseña: Usa un Token de Acceso Personal (PAT), no tu contraseña
+  - Ve a GitHub → Settings → Developer settings → Personal access tokens
+  - Genera un token con permisos `repo`
 
-✅ **Checkpoint**: Your code is now on GitHub! Refresh your GitHub repository page to see all files.
+✅ **Punto de control**: ¡Tu código ya está en GitHub! Refresca la página de tu repositorio para ver los archivos.
 
-## Part 3: Set Up S3 Backend for Terraform State
+## Parte 3: Configura S3 como backend para el estado de Terraform
 
-### Step 1: Create State Management Resources
+### Paso 1: Crea recursos para gestión de estado
 
-Create `terraform/backend-setup.tf`:
+Crea `terraform/backend-setup.tf`:
 
 ```hcl
-# This file creates the S3 bucket and DynamoDB table for Terraform state
-# Run this once per AWS account, then remove the file
+# Este archivo crea el bucket S3 y la tabla DynamoDB para el estado de Terraform
+# Ejecútalo una vez por cuenta AWS y luego elimínalo
 
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "twin-terraform-state-${data.aws_caller_identity.current.account_id}"
@@ -289,7 +289,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 }
 
-# Note: aws_caller_identity.current is already defined in main.tf
+# Nota: aws_caller_identity.current ya está definido en main.tf
 
 output "state_bucket_name" {
   value = aws_s3_bucket.terraform_state.id
@@ -300,51 +300,51 @@ output "dynamodb_table_name" {
 }
 ```
 
-### Step 2: Create Backend Resources - note 1 line is different for Mac/Linux or PC:
+### Paso 2: Crea los recursos backend - nota: una línea es diferente para Mac/Linux o PC:
 
 ```bash
 cd terraform
 
-# IMPORTANT: Make sure you're in the default workspace
+# IMPORTANTE: Asegúrate de estar en el workspace por defecto
 terraform workspace select default
 
-# Initialize Terraform
+# Inicializa Terraform
 terraform init
 
-# Apply just the backend resources (one line - copy and paste this entire command - different for Mac/Linux and PC)
+# Aplica solo los recursos del backend (copia y pega toda esta línea, cambia según tu SO)
 
-# Mac/Linux version:
+# Versión Mac/Linux:
 terraform apply -target=aws_s3_bucket.terraform_state -target=aws_s3_bucket_versioning.terraform_state -target=aws_s3_bucket_server_side_encryption_configuration.terraform_state -target=aws_s3_bucket_public_access_block.terraform_state -target=aws_dynamodb_table.terraform_locks
-# PC version
+# Versión PC:
 terraform apply --% -target="aws_s3_bucket.terraform_state" -target="aws_s3_bucket_versioning.terraform_state" -target="aws_s3_bucket_server_side_encryption_configuration.terraform_state" -target="aws_s3_bucket_public_access_block.terraform_state" -target="aws_dynamodb_table.terraform_locks"
 
-# Verify the resources were created
+# Verifica que los recursos estén creados
 terraform output
 ```
 
-The bucket and DynamoDB table are now ready for storing Terraform state.
+El bucket y la tabla DynamoDB están listos para guardar el estado de Terraform.
 
-### Step 3: Remove Setup File
+### Paso 3: Elimina el archivo de setup
 
-Now that the backend resources exist, remove the setup file:
+Ahora que existen los recursos backend, elimina el archivo de setup:
 
 ```bash
 rm backend-setup.tf
 ```
 
-### Step 4: Update Scripts for S3 Backend
+### Paso 4: Actualiza scripts para backend S3
 
-We need to update both deployment and destroy scripts to work with the S3 backend.
+Hay que modificar los scripts de despliegue y destrucción para funcionar con el backend S3.
 
-#### Update Deploy Script
+#### Actualiza deploy.sh
 
-Update `scripts/deploy.sh` to include backend configuration. Find the terraform init line and replace it:
+Actualiza `scripts/deploy.sh` para incluir la configuración del backend. Busca la línea de `terraform init` y reemplázala así:
 
 ```bash
-# Old line:
+# Línea antigua:
 terraform init -input=false
 
-# New lines:
+# Nuevas líneas:
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=${DEFAULT_AWS_REGION:-us-east-1}
 terraform init -input=false \
@@ -355,13 +355,13 @@ terraform init -input=false \
   -backend-config="encrypt=true"
 ```
 
-Update `scripts/deploy.ps1` similarly:
+Actualiza `scripts/deploy.ps1` de manera similar:
 
 ```powershell
-# Old line:
+# Línea antigua:
 terraform init -input=false
 
-# New lines:
+# Nuevas líneas:
 $awsAccountId = aws sts get-caller-identity --query Account --output text
 $awsRegion = if ($env:DEFAULT_AWS_REGION) { $env:DEFAULT_AWS_REGION } else { "us-east-1" }
 terraform init -input=false `
@@ -372,37 +372,34 @@ terraform init -input=false `
   -backend-config="encrypt=true"
 ```
 
-#### Update Destroy Script
+#### Actualiza destroy.sh
 
-Replace your entire `scripts/destroy.sh` with this updated version that includes S3 backend support:
+Reemplaza tu `scripts/destroy.sh` por esta versión con soporte para backend S3:
 
 ```bash
 #!/bin/bash
 set -e
 
-# Check if environment parameter is provided
+# Verifica si el parámetro de entorno fue suministrado
 if [ $# -eq 0 ]; then
-    echo "❌ Error: Environment parameter is required"
-    echo "Usage: $0 <environment>"
-    echo "Example: $0 dev"
-    echo "Available environments: dev, test, prod"
+    echo "❌ Error: Se requiere el parámetro de entorno"
+    echo "Uso: $0 <entorno>"
+    echo "Ejemplo: $0 dev"
+    echo "Entornos disponibles: dev, test, prod"
     exit 1
 fi
 
 ENVIRONMENT=$1
 PROJECT_NAME=${2:-twin}
 
-echo "🗑️ Preparing to destroy ${PROJECT_NAME}-${ENVIRONMENT} infrastructure..."
+echo "🗑️ Preparando destrucción de la infraestructura ${PROJECT_NAME}-${ENVIRONMENT}..."
 
-# Navigate to terraform directory
 cd "$(dirname "$0")/../terraform"
 
-# Get AWS Account ID and Region for backend configuration
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 AWS_REGION=${DEFAULT_AWS_REGION:-us-east-1}
 
-# Initialize terraform with S3 backend
-echo "🔧 Initializing Terraform with S3 backend..."
+echo "🔧 Inicializando Terraform con backend S3..."
 terraform init -input=false \
   -backend-config="bucket=twin-terraform-state-${AWS_ACCOUNT_ID}" \
   -backend-config="key=${ENVIRONMENT}/terraform.tfstate" \
@@ -410,62 +407,55 @@ terraform init -input=false \
   -backend-config="dynamodb_table=twin-terraform-locks" \
   -backend-config="encrypt=true"
 
-# Check if workspace exists
 if ! terraform workspace list | grep -q "$ENVIRONMENT"; then
-    echo "❌ Error: Workspace '$ENVIRONMENT' does not exist"
-    echo "Available workspaces:"
+    echo "❌ Error: El workspace '$ENVIRONMENT' no existe"
+    echo "Workspaces disponibles:"
     terraform workspace list
     exit 1
 fi
 
-# Select the workspace
 terraform workspace select "$ENVIRONMENT"
 
-echo "📦 Emptying S3 buckets..."
+echo "📦 Vaciando buckets S3..."
 
-# Get bucket names with account ID (matching Day 4 naming)
 FRONTEND_BUCKET="${PROJECT_NAME}-${ENVIRONMENT}-frontend-${AWS_ACCOUNT_ID}"
 MEMORY_BUCKET="${PROJECT_NAME}-${ENVIRONMENT}-memory-${AWS_ACCOUNT_ID}"
 
-# Empty frontend bucket if it exists
 if aws s3 ls "s3://$FRONTEND_BUCKET" 2>/dev/null; then
-    echo "  Emptying $FRONTEND_BUCKET..."
+    echo "  Vaciando $FRONTEND_BUCKET..."
     aws s3 rm "s3://$FRONTEND_BUCKET" --recursive
 else
-    echo "  Frontend bucket not found or already empty"
+    echo "  Bucket frontend no encontrado o ya vacío"
 fi
 
-# Empty memory bucket if it exists
 if aws s3 ls "s3://$MEMORY_BUCKET" 2>/dev/null; then
-    echo "  Emptying $MEMORY_BUCKET..."
+    echo "  Vaciando $MEMORY_BUCKET..."
     aws s3 rm "s3://$MEMORY_BUCKET" --recursive
 else
-    echo "  Memory bucket not found or already empty"
+    echo "  Bucket memory no encontrado o ya vacío"
 fi
 
-echo "🔥 Running terraform destroy..."
+echo "🔥 Ejecutando terraform destroy..."
 
-# Create a dummy lambda zip if it doesn't exist (needed for destroy in GitHub Actions)
 if [ ! -f "../backend/lambda-deployment.zip" ]; then
-    echo "Creating dummy lambda package for destroy operation..."
+    echo "Creando paquete lambda de prueba para la destrucción..."
     echo "dummy" | zip ../backend/lambda-deployment.zip -
 fi
 
-# Run terraform destroy with auto-approve
 if [ "$ENVIRONMENT" = "prod" ] && [ -f "prod.tfvars" ]; then
     terraform destroy -var-file=prod.tfvars -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve
 else
     terraform destroy -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve
 fi
 
-echo "✅ Infrastructure for ${ENVIRONMENT} has been destroyed!"
+echo "✅ ¡Infraestructura de $ENVIRONMENT destruida!"
 echo ""
-echo "💡 To remove the workspace completely, run:"
+echo "💡 Para eliminar el workspace completamente, ejecuta:"
 echo "   terraform workspace select default"
 echo "   terraform workspace delete $ENVIRONMENT"
 ```
 
-Replace your entire `scripts/destroy.ps1` with this updated version:
+Haz lo mismo con `scripts/destroy.ps1`:
 
 ```powershell
 param(
@@ -474,24 +464,20 @@ param(
     [string]$ProjectName = "twin"
 )
 
-# Validate environment parameter
 if ($Environment -notmatch '^(dev|test|prod)$') {
-    Write-Host "Error: Invalid environment '$Environment'" -ForegroundColor Red
-    Write-Host "Available environments: dev, test, prod" -ForegroundColor Yellow
+    Write-Host "Error: Entorno inválido '$Environment'" -ForegroundColor Red
+    Write-Host "Entornos disponibles: dev, test, prod" -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "Preparing to destroy $ProjectName-$Environment infrastructure..." -ForegroundColor Yellow
+Write-Host "Preparando destrucción de $ProjectName-$Environment..." -ForegroundColor Yellow
 
-# Navigate to terraform directory
 Set-Location (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 
-# Get AWS Account ID for backend configuration
 $awsAccountId = aws sts get-caller-identity --query Account --output text
 $awsRegion = if ($env:DEFAULT_AWS_REGION) { $env:DEFAULT_AWS_REGION } else { "us-east-1" }
 
-# Initialize terraform with S3 backend
-Write-Host "Initializing Terraform with S3 backend..." -ForegroundColor Yellow
+Write-Host "Inicializando Terraform con backend S3..." -ForegroundColor Yellow
 terraform init -input=false `
   -backend-config="bucket=twin-terraform-state-$awsAccountId" `
   -backend-config="key=$Environment/terraform.tfstate" `
@@ -499,45 +485,39 @@ terraform init -input=false `
   -backend-config="dynamodb_table=twin-terraform-locks" `
   -backend-config="encrypt=true"
 
-# Check if workspace exists
 $workspaces = terraform workspace list
 if (-not ($workspaces | Select-String $Environment)) {
-    Write-Host "Error: Workspace '$Environment' does not exist" -ForegroundColor Red
-    Write-Host "Available workspaces:" -ForegroundColor Yellow
+    Write-Host "Error: El workspace '$Environment' no existe" -ForegroundColor Red
+    Write-Host "Workspaces disponibles:" -ForegroundColor Yellow
     terraform workspace list
     exit 1
 }
 
-# Select the workspace
 terraform workspace select $Environment
 
-Write-Host "Emptying S3 buckets..." -ForegroundColor Yellow
+Write-Host "Vaciando buckets S3..." -ForegroundColor Yellow
 
-# Define bucket names with account ID (matching Day 4 naming)
 $FrontendBucket = "$ProjectName-$Environment-frontend-$awsAccountId"
 $MemoryBucket = "$ProjectName-$Environment-memory-$awsAccountId"
 
-# Empty frontend bucket if it exists
 try {
     aws s3 ls "s3://$FrontendBucket" 2>$null | Out-Null
-    Write-Host "  Emptying $FrontendBucket..." -ForegroundColor Gray
+    Write-Host "  Vaciando $FrontendBucket..." -ForegroundColor Gray
     aws s3 rm "s3://$FrontendBucket" --recursive
 } catch {
-    Write-Host "  Frontend bucket not found or already empty" -ForegroundColor Gray
+    Write-Host "  Bucket frontend no encontrado o ya vacío" -ForegroundColor Gray
 }
 
-# Empty memory bucket if it exists
 try {
     aws s3 ls "s3://$MemoryBucket" 2>$null | Out-Null
-    Write-Host "  Emptying $MemoryBucket..." -ForegroundColor Gray
+    Write-Host "  Vaciando $MemoryBucket..." -ForegroundColor Gray
     aws s3 rm "s3://$MemoryBucket" --recursive
 } catch {
-    Write-Host "  Memory bucket not found or already empty" -ForegroundColor Gray
+    Write-Host "  Bucket memory no encontrado o ya vacío" -ForegroundColor Gray
 }
 
-Write-Host "Running terraform destroy..." -ForegroundColor Yellow
+Write-Host "Ejecutando terraform destroy..." -ForegroundColor Yellow
 
-# Run terraform destroy with auto-approve
 if ($Environment -eq "prod" -and (Test-Path "prod.tfvars")) {
     terraform destroy -var-file=prod.tfvars `
                      -var="project_name=$ProjectName" `
@@ -549,34 +529,34 @@ if ($Environment -eq "prod" -and (Test-Path "prod.tfvars")) {
                      -auto-approve
 }
 
-Write-Host "Infrastructure for $Environment has been destroyed!" -ForegroundColor Green
+Write-Host "¡Infraestructura $Environment destruida!" -ForegroundColor Green
 Write-Host ""
-Write-Host "  To remove the workspace completely, run:" -ForegroundColor Cyan
+Write-Host "  Para eliminar el workspace completamente, ejecuta:" -ForegroundColor Cyan
 Write-Host "   terraform workspace select default" -ForegroundColor White
 Write-Host "   terraform workspace delete $Environment" -ForegroundColor White
 ```
 
-## Part 4: Configure GitHub Repository Secrets
+## Parte 4: Configura los secretos del repositorio GitHub
 
-### Step 1: Create AWS IAM Role for GitHub Actions
+### Paso 1: Crea un rol IAM de AWS para GitHub Actions
 
-As of August 2025, GitHub strongly recommends using OpenID Connect (OIDC) for AWS authentication. This is more secure than storing long-lived access keys.
+A partir de agosto de 2025, GitHub recomienda usar OpenID Connect (OIDC) para autentificación en AWS. Es más seguro que almacenar claves de acceso de larga duración.
 
-Create `terraform/github-oidc.tf`:
+Crea `terraform/github-oidc.tf`:
 
 ```hcl
-# This creates an IAM role that GitHub Actions can assume
-# Run this once, then you can remove the file
+# Crea un rol IAM que GitHub Actions puede asumir
+# Ejecútalo una vez y luego elimina el archivo
 
 variable "github_repository" {
-  description = "GitHub repository in format 'owner/repo'"
+  description = "Repositorio GitHub en formato 'owner/repo'"
   type        = string
 }
 
-# Note: aws_caller_identity.current is already defined in main.tf
+# Nota: aws_caller_identity.current ya está definido en main.tf
 
-# GitHub OIDC Provider
-# Note: If this already exists in your account, you'll need to import it:
+# Proveedor OIDC de GitHub
+# Si ya existe en tu cuenta, deberás importarlo:
 # terraform import aws_iam_openid_connect_provider.github arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
@@ -585,14 +565,14 @@ resource "aws_iam_openid_connect_provider" "github" {
     "sts.amazonaws.com"
   ]
   
-  # This thumbprint is from GitHub's documentation
-  # Verify current value at: https://github.blog/changelog/2023-06-27-github-actions-update-on-oidc-integration-with-aws/
+  # Este thumbprint viene de la documentación de GitHub
+  # Verifica el valor en: https://github.blog/changelog/2023-06-27-github-actions-update-on-oidc-integration-with-aws/
   thumbprint_list = [
     "1b511abead59c6ce207077c0bf0e0043b1382612"
   ]
 }
 
-# IAM Role for GitHub Actions
+# Rol IAM para GitHub Actions
 resource "aws_iam_role" "github_actions" {
   name = "github-actions-twin-deploy"
   
@@ -624,7 +604,7 @@ resource "aws_iam_role" "github_actions" {
   }
 }
 
-# Attach necessary policies
+# Adjunta políticas necesarias
 resource "aws_iam_role_policy_attachment" "github_lambda" {
   policy_arn = "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
   role       = aws_iam_role.github_actions.name
@@ -670,7 +650,7 @@ resource "aws_iam_role_policy_attachment" "github_route53" {
   role       = aws_iam_role.github_actions.name
 }
 
-# Custom policy for additional permissions
+# Política personalizada para permisos adicionales
 resource "aws_iam_role_policy" "github_additional" {
   name = "github-actions-additional"
   role = aws_iam_role.github_actions.id
@@ -709,15 +689,15 @@ output "github_actions_role_arn" {
 }
 ```
 
-### Step 2: Create the GitHub Actions Role
+### Paso 2: Crea el rol de GitHub Actions
 
 ```bash
 cd terraform
 
-# IMPORTANT: Make sure you're in the default workspace
+# IMPORTANTE: Asegúrate de estar en el workspace por defecto
 terraform workspace select default
 
-# First, check if the OIDC provider already exists
+# Verifica primero si el proveedor OIDC ya existe
 
 **Mac/Linux:**
 ```bash
@@ -729,155 +709,153 @@ aws iam list-open-id-connect-providers | grep token.actions.githubusercontent.co
 aws iam list-open-id-connect-providers | Select-String "token.actions.githubusercontent.com"
 ```
 
-If it exists, you'll see an ARN like: `arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com`
+Si existe, verás un ARN como: `arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com`
 
-In that case, import it first:
+En ese caso, impórtalo primero:
 
 **Mac/Linux:**
 ```bash
-# Get your AWS Account ID
+# Obtén tu Account ID de AWS
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-echo "Your AWS Account ID is: $AWS_ACCOUNT_ID"
+echo "Tu AWS Account ID es: $AWS_ACCOUNT_ID"
 
-# Only run this if the provider already exists:
+# Solo si ya existe el proveedor:
 # terraform import aws_iam_openid_connect_provider.github arn:aws:iam::${AWS_ACCOUNT_ID}:oidc-provider/token.actions.githubusercontent.com
 ```
 
 **Windows (PowerShell):**
 ```powershell
-# Get your AWS Account ID
+# Obtén tu Account ID de AWS
 $awsAccountId = aws sts get-caller-identity --query Account --output text
-Write-Host "Your AWS Account ID is: $awsAccountId"
+Write-Host "Tu AWS Account ID es: $awsAccountId"
 
-# Only run this if the provider already exists:
+# Solo si ya existe el proveedor:
 # terraform import aws_iam_openid_connect_provider.github "arn:aws:iam::${awsAccountId}:oidc-provider/token.actions.githubusercontent.com"
 ```
 
-### Apply the GitHub OIDC Resources
+### Aplica los recursos OIDC de GitHub
 
-Now you need to apply the resources. The command differs depending on whether the OIDC provider already exists:
+Ahora aplica los recursos. El comando depende de si el proveedor OIDC ya existe:
 
-#### Scenario A: OIDC Provider Does NOT Exist (First Time)
+#### Escenario A: OIDC NO existe (primera vez)
 
-If the grep/Select-String command above found nothing, the OIDC provider doesn't exist yet. Create it along with the IAM role:
+Si el comando grep/Select-String no devolvió nada, el OIDC no existe aún. Créalo junto con el rol IAM:
 
-**⚠️ IMPORTANT**: Replace `YOUR_GITHUB_USERNAME` with your actual GitHub username.
-For example: if your GitHub username is 'johndoe', use: `johndoe/digital-twin`  
-**NOTE** Do not put a URL here - it should just be the Github username, not with "https://github.com/" at the front, or you will get cryptic errors!
+**⚠️ IMPORTANTE**: Sustituye `YOUR_GITHUB_USERNAME` por tu verdadero usuario de GitHub.  
+Por ejemplo: si tu usuario de GitHub es 'johndoe', usa: `johndoe/digital-twin`  
+**NOTA**: No pongas la URL, solo el usuario/repositorio.
 
 **Mac/Linux:**
 ```bash
-# Apply ALL resources including OIDC provider (this is one long command - copy and paste it all)
+# Aplica TODOS los recursos incluyendo OIDC
 terraform apply -target=aws_iam_openid_connect_provider.github -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_dynamodb -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
 ```
 
 **Windows (PowerShell):**
 ```powershell
-# Apply ALL resources including OIDC provider (this is one long command - copy and paste it all)
+# Aplica TODOS los recursos incluyendo OIDC
 terraform apply -target="aws_iam_openid_connect_provider.github" -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_dynamodb" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=YOUR_GITHUB_USERNAME/digital-twin"
 ```
 
-#### Scenario B: OIDC Provider Already Exists (You Imported It)
+#### Escenario B: OIDC ya existe (lo importaste)
 
-If you ran the import command above, you've already imported the OIDC provider. Now create just the IAM role and policies:
+Si importaste el proveedor, crea solo el rol IAM y las políticas:
 
-**Note**: During the import, you were prompted for `var.github_repository`. You entered something like `your-username/digital-twin` (e.g., `ed-donner/twin`).
-
-**⚠️ IMPORTANT**: Use the same repository name below that you used during import.
+**⚠️ IMPORTANTE**: Usa el mismo nombre de repo que durante la importación.
 
 **Mac/Linux:**
 ```bash
-# Apply ONLY the IAM role and policies (NOT the OIDC provider) - one long command
+# Aplica SOLO el rol IAM y políticas (NO el proveedor OIDC)
 terraform apply -target=aws_iam_role.github_actions -target=aws_iam_role_policy_attachment.github_lambda -target=aws_iam_role_policy_attachment.github_s3 -target=aws_iam_role_policy_attachment.github_apigateway -target=aws_iam_role_policy_attachment.github_cloudfront -target=aws_iam_role_policy_attachment.github_iam_read -target=aws_iam_role_policy_attachment.github_bedrock -target=aws_iam_role_policy_attachment.github_dynamodb -target=aws_iam_role_policy_attachment.github_acm -target=aws_iam_role_policy_attachment.github_route53 -target=aws_iam_role_policy.github_additional -var="github_repository=YOUR_GITHUB_USERNAME/your-repo-name"
 ```
 
 **Windows (PowerShell):**
 ```powershell
-# Apply ONLY the IAM role and policies (NOT the OIDC provider) - one long command
+# Aplica SOLO el rol IAM y políticas (NO el proveedor OIDC)
 terraform apply -target="aws_iam_role.github_actions" -target="aws_iam_role_policy_attachment.github_lambda" -target="aws_iam_role_policy_attachment.github_s3" -target="aws_iam_role_policy_attachment.github_apigateway" -target="aws_iam_role_policy_attachment.github_cloudfront" -target="aws_iam_role_policy_attachment.github_iam_read" -target="aws_iam_role_policy_attachment.github_bedrock" -target="aws_iam_role_policy_attachment.github_dynamodb" -target="aws_iam_role_policy_attachment.github_acm" -target="aws_iam_role_policy_attachment.github_route53" -target="aws_iam_role_policy.github_additional" -var="github_repository=myrepo/digital-twin"
 ```
 
-### Get the Role ARN and Clean Up
+### Obtén el ARN del rol y limpia
 
-After either scenario succeeds:
+Después de aplicar:
 
 ```bash
-# Note the role ARN from the output
+# Anota el ARN mostrado en el output
 terraform output github_actions_role_arn
 
-# Remove the setup file after creating
+# Elimina archivo de setup
 rm github-oidc.tf    # Mac/Linux
-Remove-Item github-oidc.tf    # Windows PowerShell
+Remove-Item github-oidc.tf    # PowerShell Windows
 ```
 
-**Important**: Save the Role ARN from the terraform output - you'll need it for the next step.
+**Importante**: Guarda el ARN. Lo necesitarás para el siguiente paso.
 
-### Step 3: Configure Terraform Backend
+### Paso 3: Configura el backend de Terraform
 
-Now that all setup resources are created, configure Terraform to use the S3 backend.
+Ya con los recursos creados, configura el backend de S3.
 
-Create `terraform/backend.tf`:
+Crea `terraform/backend.tf`:
 
 ```hcl
 terraform {
   backend "s3" {
-    # These values will be set by deployment scripts
-    # For local development, they can be passed via -backend-config
+    # Estos valores los establecerán los scripts de despliegue
+    # Para desarrollo local, pueden pasarse vía -backend-config
   }
 }
 ```
 
-This file tells Terraform to use S3 for state storage, but doesn't specify the bucket name or other details. Those will be provided by the deployment scripts using `-backend-config` flags.
+Este archivo indica a Terraform usar S3 para guardar su estado. Los detalles se pasan con banderas `-backend-config`.
 
-### Step 4: Add Secrets to GitHub
+### Paso 4: Agrega secretos a GitHub
 
-1. Go to your GitHub repository
-2. Click **Settings** tab
-3. In the left sidebar, click **Secrets and variables** → **Actions**
-4. Click **New repository secret** for each of these:
+1. Ve a tu repositorio GitHub
+2. Haz clic en la pestaña **Settings**
+3. En el menú izquierdo, selecciona **Secrets and variables** → **Actions**
+4. Haz clic en **New repository secret** para cada uno:
 
-**Secret 1: AWS_ROLE_ARN**
-- Name: `AWS_ROLE_ARN`
-- Value: The ARN from terraform output (like `arn:aws:iam::123456789012:role/github-actions-twin-deploy`)
+**Secreto 1: AWS_ROLE_ARN**
+- Nombre: `AWS_ROLE_ARN`
+- Valor: El ARN del rol de terraform output (ej: `arn:aws:iam::123456789012:role/github-actions-twin-deploy`)
 
-**Secret 2: DEFAULT_AWS_REGION**
-- Name: `DEFAULT_AWS_REGION`
-- Value: `us-east-1` (or your preferred region)
+**Secreto 2: DEFAULT_AWS_REGION**
+- Nombre: `DEFAULT_AWS_REGION`
+- Valor: `us-east-1` (o tu región preferida)
 
-**Secret 3: AWS_ACCOUNT_ID**
-- Name: `AWS_ACCOUNT_ID`
-- Value: Your 12-digit AWS account ID
+**Secreto 3: AWS_ACCOUNT_ID**
+- Nombre: `AWS_ACCOUNT_ID`
+- Valor: El ID de 12 dígitos de tu cuenta AWS
 
-### Step 5: Verify Secrets
+### Paso 5: Verifica los secretos
 
-After adding all secrets, you should see 3 repository secrets:
+Después de agregarlos, deberías tener 3 secretos:
 - AWS_ROLE_ARN
 - DEFAULT_AWS_REGION  
 - AWS_ACCOUNT_ID
 
-✅ **Checkpoint**: GitHub can now securely authenticate with your AWS account!
+✅ **Punto de control**: ¡GitHub puede autenticarse con AWS de forma segura!
 
-## Part 5: Create GitHub Actions Workflows
+## Parte 5: Crear workflows de GitHub Actions
 
-### Step 1: Create Workflow Directory
+### Paso 1: Crea el directorio de workflows
 
-In Cursor's Explorer panel (left sidebar):
+En el panel del explorador de Cursor (barra izquierda):
 
-1. Right-click in the Explorer panel (on any empty space or on the project root)
-2. Select **New Folder**
-3. Name it `.github` (with the dot)
-4. Right-click on the `.github` folder you just created
-5. Select **New Folder**
-6. Name it `workflows`
+1. Haz clic derecho en algún espacio vacío o la raíz del proyecto
+2. Selecciona **New Folder**
+3. Nómbralo `.github`
+4. Haz clic derecho sobre la carpeta `.github` creada
+5. Selecciona **New Folder**
+6. Nómbralo `workflows`
 
-You should now have `.github/workflows/` in your project.
+Ahora tienes `.github/workflows/` en tu proyecto.
 
-### Step 2: Create Deployment Workflow
+### Paso 2: Crea workflow de despliegue
 
-Create `.github/workflows/deploy.yml`:
+Crea `.github/workflows/deploy.yml`:
 
 ```yaml
-name: Deploy Digital Twin
+name: Desplegar Gemelo Digital
 
 on:
   push:
@@ -885,7 +863,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy'
+        description: 'Entorno a desplegar'
         required: true
         default: 'dev'
         type: choice
@@ -900,56 +878,56 @@ permissions:
 
 jobs:
   deploy:
-    name: Deploy to ${{ github.event.inputs.environment || 'dev' }}
+    name: Desplegar en ${{ github.event.inputs.environment || 'dev' }}
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'dev' }}
     
     steps:
-      - name: Checkout code
+      - name: Clonar el código
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: github-actions-deploy
           aws-region: ${{ secrets.DEFAULT_AWS_REGION }}
 
-      - name: Set up Python
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install uv
+      - name: Instalar uv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Setup Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_wrapper: false  # Important: disable wrapper to get raw outputs
+          terraform_wrapper: false  # Importante: desactivar wrapper para outputs puros
 
-      - name: Setup Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Run Deployment Script
+      - name: Ejecutar script de despliegue
         run: |
-          # Set environment variables for the script
+          # Variables de entorno para el script
           export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
           export DEFAULT_AWS_REGION=${{ secrets.DEFAULT_AWS_REGION }}
           
-          # Make script executable and run it
+          # Haz ejecutable el script y ejecútalo
           chmod +x scripts/deploy.sh
           ./scripts/deploy.sh ${{ github.event.inputs.environment || 'dev' }}
         env:
           AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
           
-      - name: Get Deployment URLs
+      - name: Obtener URLs del despliegue
         id: deploy_outputs
         working-directory: ./terraform
         run: |
@@ -958,7 +936,7 @@ jobs:
           echo "api_url=$(terraform output -raw api_gateway_url)" >> $GITHUB_OUTPUT
           echo "frontend_bucket=$(terraform output -raw s3_frontend_bucket)" >> $GITHUB_OUTPUT
 
-      - name: Invalidate CloudFront
+      - name: Invalidar CloudFront
         run: |
           DISTRIBUTION_ID=$(aws cloudfront list-distributions \
             --query "DistributionList.Items[?Origins.Items[?DomainName=='${{ steps.deploy_outputs.outputs.frontend_bucket }}.s3-website-${{ secrets.DEFAULT_AWS_REGION }}.amazonaws.com']].Id | [0]" \
@@ -970,26 +948,26 @@ jobs:
               --paths "/*"
           fi
 
-      - name: Deployment Summary
+      - name: Resumen del Despliegue
         run: |
-          echo "✅ Deployment Complete!"
-          echo "🌐 CloudFront URL: ${{ steps.deploy_outputs.outputs.cloudfront_url }}"
+          echo "✅ ¡Despliegue completo!"
+          echo "🌐 URL CloudFront: ${{ steps.deploy_outputs.outputs.cloudfront_url }}"
           echo "📡 API Gateway: ${{ steps.deploy_outputs.outputs.api_url }}"
-          echo "🪣 Frontend Bucket: ${{ steps.deploy_outputs.outputs.frontend_bucket }}"
+          echo "🪣 Bucket frontend: ${{ steps.deploy_outputs.outputs.frontend_bucket }}"
 ```
 
-### Step 3: Create Destroy Workflow
+### Paso 3: Crea workflow de destrucción
 
-Create `.github/workflows/destroy.yml`:
+Crea `.github/workflows/destroy.yml`:
 
 ```yaml
-name: Destroy Environment
+name: Destruir entorno
 
 on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to destroy'
+        description: 'Entorno a destruir'
         required: true
         type: choice
         options:
@@ -997,7 +975,7 @@ on:
           - test
           - prod
       confirm:
-        description: 'Type the environment name to confirm destruction'
+        description: 'Escribe el nombre del entorno para confirmar la destrucción'
         required: true
 
 permissions:
@@ -1006,141 +984,141 @@ permissions:
 
 jobs:
   destroy:
-    name: Destroy ${{ github.event.inputs.environment }}
+    name: Destruir ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
     
     steps:
-      - name: Verify confirmation
+      - name: Verificar confirmación
         run: |
           if [ "${{ github.event.inputs.confirm }}" != "${{ github.event.inputs.environment }}" ]; then
-            echo "❌ Confirmation does not match environment name!"
-            echo "You entered: '${{ github.event.inputs.confirm }}'"
-            echo "Expected: '${{ github.event.inputs.environment }}'"
+            echo "❌ ¡La confirmación no coincide con el nombre del entorno!"
+            echo "Ingresaste: '${{ github.event.inputs.confirm }}'"
+            echo "Se esperaba: '${{ github.event.inputs.environment }}'"
             exit 1
           fi
-          echo "✅ Destruction confirmed for ${{ github.event.inputs.environment }}"
+          echo "✅ Confirmada la destrucción de ${{ github.event.inputs.environment }}"
 
-      - name: Checkout code
+      - name: Clonar el código
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           role-session-name: github-actions-destroy
           aws-region: ${{ secrets.DEFAULT_AWS_REGION }}
 
-      - name: Setup Terraform
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_wrapper: false  # Important: disable wrapper to get raw outputs
+          terraform_wrapper: false  # Importante: desactivar wrapper para outputs puros
 
-      - name: Run Destroy Script
+      - name: Ejecutar script de destrucción
         run: |
-          # Set environment variables for the script
+          # Variables de entorno para el script
           export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
           export DEFAULT_AWS_REGION=${{ secrets.DEFAULT_AWS_REGION }}
           
-          # Make script executable and run it
+          # Haz ejecutable el script y ejecútalo
           chmod +x scripts/destroy.sh
           ./scripts/destroy.sh ${{ github.event.inputs.environment }}
         env:
           AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
-      - name: Destruction Complete
+      - name: Destrucción completada
         run: |
-          echo "✅ Environment ${{ github.event.inputs.environment }} has been destroyed!"
+          echo "✅ ¡El entorno ${{ github.event.inputs.environment }} ha sido destruido!"
 ```
 
-### Step 4: Commit and Push All Changes
+### Paso 4: Haz commit y push de todos los cambios
 
 ```bash
-# Add all changes (workflows, backend.tf, updated scripts)
+# Agrega todos los cambios (workflows, backend.tf, scripts actualizados)
 git add .
 
-# See what's being committed
+# Revisa lo que se va a commitear
 git status
 
 # Commit
-git commit -m "Add CI/CD with GitHub Actions, S3 backend, and updated scripts"
+git commit -m "Agregar CI/CD con GitHub Actions, backend S3 y scripts actualizados"
 
-# Push to GitHub
+# Push a GitHub
 git push
 ```
 
-## Part 6: Test Deployments
+## Parte 6: Prueba despliegues
 
-### Step 1: Automatic Dev Deployment
+### Paso 1: Despliegue dev automático
 
-Since we pushed to the main branch, GitHub Actions should automatically trigger a deployment to dev:
+Al hacer push a main, GitHub Actions debería desplegar automáticamente en dev:
 
-1. Go to your GitHub repository
-2. Click **Actions** tab
-3. You should see "Deploy Digital Twin" workflow running
-4. Click on it to watch the progress
-5. Wait for completion (5-10 minutes)
+1. Ve a tu repositorio GitHub
+2. Haz clic en la pestaña **Actions**
+3. Deberías ver el workflow "Deploy Digital Twin" en ejecución
+4. Haz click para ver el progreso
+5. Espera que finalice (5-10 minutos)
 
-Once the deployment completes successfully:
+Una vez finalizado:
 
-6. Expand the **"Deployment Summary"** step at the bottom of the workflow
-7. You'll see your deployment URLs:
-   - 🌐 **CloudFront URL**: `https://[something].cloudfront.net` - this is your Digital Twin app!
-   - 📡 **API Gateway**: The backend API endpoint
-   - 🪣 **Frontend Bucket**: The S3 bucket name
-8. Click on the CloudFront URL to open your Digital Twin in a browser
+6. Expande el paso **"Deployment Summary"** al final del workflow
+7. Verás tus URLs de despliegue:
+   - 🌐 **URL CloudFront**: `https://[algo].cloudfront.net` - aquí está tu Gemelo Digital
+   - 📡 **API Gateway**: El endpoint backend
+   - 🪣 **Bucket frontend**: El nombre del bucket S3
+8. Abre la URL de CloudFront para ver tu Gemelo Digital en el navegador
 
-### Step 2: Manual Test Deployment
+### Paso 2: Despliegue manual en test
 
-Let's deploy to the test environment:
+Despleguemos en el entorno de pruebas:
 
-1. In GitHub, go to **Actions** tab
-2. Click **Deploy Digital Twin** on the left
-3. Click **Run workflow** dropdown
-4. Select:
-   - Branch: `main`
-   - Environment: `test`
-5. Click **Run workflow**
-6. Watch the deployment progress
+1. En GitHub, ve a **Actions**
+2. Haz click en **Deploy Digital Twin** a la izquierda
+3. Haz click en el menú **Run workflow**
+4. Selecciona:
+   - Rama: `main`
+   - Entorno: `test`
+5. Haz click en **Run workflow**
+6. Observa el progreso
 
-### Step 3: Manual Production Deployment
+### Paso 3: Despliegue manual en producción
 
-If you have a custom domain configured:
+Si tienes dominio personalizado:
 
-1. In GitHub, go to **Actions** tab
-2. Click **Deploy Digital Twin**
-3. Click **Run workflow**
-4. Select:
-   - Branch: `main`
-   - Environment: `prod`
-5. Click **Run workflow**
+1. En GitHub, ve a **Actions**
+2. Haz click en **Deploy Digital Twin**
+3. Haz click en **Run workflow**
+4. Selecciona:
+   - Rama: `main`
+   - Entorno: `prod`
+5. Haz click en **Run workflow**
 
-### Step 4: Verify Deployments
+### Paso 4: Verifica los despliegues
 
-After each deployment completes:
-1. Check the workflow summary for the CloudFront URL
-2. Visit the URL to test your Digital Twin
-3. Have a conversation to verify it's working
+Después de cada despliegue:
+1. Revisa el resumen del workflow para la URL de CloudFront
+2. Accede a la URL y prueba tu Gemelo Digital
+3. Mantén una conversación para verificar que funciona
 
-✅ **Checkpoint**: You now have CI/CD deploying to multiple environments!
+✅ **Punto de control**: ¡Ahora tienes CI/CD desplegando en varios entornos!
 
-## Part 7: Fix UI Focus Issue and Add Avatar
+## Parte 7: Soluciona el problema de foco de UI y añade avatar
 
-Let's fix the annoying focus issue and optionally add a profile picture.
+Solucionemos el molesto problema de foco y, opcionalmente, añade foto de perfil.
 
-### Step 1: Add Profile Picture (Optional)
+### Paso 1: Añadir foto de perfil (opcional)
 
-If you have a profile picture:
+Si tienes una foto de perfil:
 
-1. Add your profile picture as `frontend/public/avatar.png`
-2. Keep it small (ideally under 100KB)
-3. Square aspect ratio works best (e.g., 200x200px)
+1. Añade tu foto como `frontend/public/avatar.png`
+2. Que sea pequeña (menos de 100KB idealmente)
+3. Mejor si es cuadrada (ej: 200x200px)
 
-### Step 2: Update Twin Component
+### Paso 2: Actualiza el componente Twin
 
-Update `frontend/components/twin.tsx` to fix the focus issue and add avatar:
+Modifica `frontend/components/twin.tsx` para solucionar el foco y añadir avatar.
 
-Find the `sendMessage` function and add a ref for the input. Here's the complete updated component:
+Busca la función `sendMessage` y añade una ref para el input. Aquí tienes el componente actualizado completo:
 
 ```typescript
 'use client';
@@ -1197,7 +1175,7 @@ export default function Twin() {
                 }),
             });
 
-            if (!response.ok) throw new Error('Failed to send message');
+            if (!response.ok) throw new Error('Fallo al enviar el mensaje');
 
             const data = await response.json();
 
@@ -1218,13 +1196,13 @@ export default function Twin() {
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: 'Sorry, I encountered an error. Please try again.',
+                content: 'Lo siento, he encontrado un error. Por favor intenta de nuevo.',
                 timestamp: new Date(),
             };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
-            // Refocus the input after message is sent
+            // Volver a enfocar el input después de enviar el mensaje
             setTimeout(() => {
                 inputRef.current?.focus();
             }, 100);
@@ -1238,10 +1216,10 @@ export default function Twin() {
         }
     };
 
-    // Check if avatar exists
+    // Verifica si existe avatar
     const [hasAvatar, setHasAvatar] = useState(false);
     useEffect(() => {
-        // Check if avatar.png exists
+        // Verificar si existe avatar.png
         fetch('/avatar.png', { method: 'HEAD' })
             .then(res => setHasAvatar(res.ok))
             .catch(() => setHasAvatar(false));
@@ -1253,9 +1231,9 @@ export default function Twin() {
             <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4 rounded-t-lg">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                     <Bot className="w-6 h-6" />
-                    AI Digital Twin
+                    Gemelo Digital IA
                 </h2>
-                <p className="text-sm text-slate-300 mt-1">Your AI course companion</p>
+                <p className="text-sm text-slate-300 mt-1">Tu compañero de curso de IA</p>
             </div>
 
             {/* Messages */}
@@ -1265,14 +1243,14 @@ export default function Twin() {
                         {hasAvatar ? (
                             <img 
                                 src="/avatar.png" 
-                                alt="Digital Twin Avatar" 
+                                alt="Avatar de Gemelo Digital" 
                                 className="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-gray-300"
                             />
                         ) : (
                             <Bot className="w-12 h-12 mx-auto mb-3 text-gray-400" />
                         )}
-                        <p>Hello! I&apos;m your Digital Twin.</p>
-                        <p className="text-sm mt-2">Ask me anything about AI deployment!</p>
+                        <p>¡Hola! Soy tu Gemelo Digital.</p>
+                        <p className="text-sm mt-2">¡Pregunta lo que quieras sobre despliegue de IA!</p>
                     </div>
                 )}
 
@@ -1288,7 +1266,7 @@ export default function Twin() {
                                 {hasAvatar ? (
                                     <img 
                                         src="/avatar.png" 
-                                        alt="Digital Twin Avatar" 
+                                        alt="Avatar de Gemelo Digital" 
                                         className="w-8 h-8 rounded-full border border-slate-300"
                                     />
                                 ) : (
@@ -1332,7 +1310,7 @@ export default function Twin() {
                             {hasAvatar ? (
                                 <img 
                                     src="/avatar.png" 
-                                    alt="Digital Twin Avatar" 
+                                    alt="Avatar de Gemelo Digital" 
                                     className="w-8 h-8 rounded-full border border-slate-300"
                                 />
                             ) : (
@@ -1363,7 +1341,7 @@ export default function Twin() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyPress}
-                        placeholder="Type your message..."
+                        placeholder="Escribe tu mensaje..."
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-600 focus:border-transparent text-gray-800"
                         disabled={isLoading}
                         autoFocus
@@ -1382,252 +1360,251 @@ export default function Twin() {
 }
 ```
 
-### Step 3: Commit and Push the Fix
+### Paso 3: Haz commit y push del arreglo
 
 ```bash
-# Add changes
+# Agrega los cambios
 git add frontend/components/twin.tsx
-git add frontend/public/avatar.png  # Only if you added an avatar
+git add frontend/public/avatar.png  # Solo si agregaste avatar
 
 # Commit
-git commit -m "Fix input focus issue and add avatar support"
+git commit -m "Solucionar el foco y añadir soporte para avatar"
 
-# Push to trigger deployment
+# Push para disparar el despliegue
 git push
 ```
 
-This push will automatically trigger a deployment to dev!
+¡Esto disparará el despliegue en dev automáticamente!
 
-### Step 4: Verify the Fix
+### Paso 4: Verifica el arreglo
 
-Once the GitHub Actions workflow completes:
+Cuando el workflow de GitHub Actions termine:
 
-1. Visit your dev environment CloudFront URL
-2. Send a message
-3. The input field should automatically regain focus after the response
-4. If you added an avatar, it should appear instead of the bot icon
+1. Visita tu URL en CloudFront del entorno dev
+2. Escribe un mensaje
+3. El input debe recuperar el foco automáticamente tras la respuesta
+4. Si agregaste avatar, aparecerá en vez del icono bot
 
-✅ **Checkpoint**: The annoying focus issue is fixed!
+✅ **Punto de control**: ¡El problema de foco está solucionado!
 
-## Part 8: Explore AWS Console and CloudWatch
+## Parte 8: Explora la consola de AWS y CloudWatch
 
-Now let's explore what's happening behind the scenes in AWS.
+Veamos qué pasa tras bambalinas en AWS.
 
-### Step 1: Sign In as IAM User
+### Paso 1: Inicia sesión como usuario IAM
 
-Sign in to AWS Console as `aiengineer` (your IAM user).
+Ingresa a la consola AWS como `aiengineer` (tu usuario IAM).
 
-### Step 2: Explore Lambda Functions
+### Paso 2: Explora funciones Lambda
 
-1. Navigate to **Lambda**
-2. You should see three functions:
+1. Navega a **Lambda**
+2. Deberías ver tres funciones:
    - `twin-dev-api`
    - `twin-test-api`
-   - `twin-prod-api` (if deployed)
-3. Click on `twin-dev-api`
-4. Go to **Monitor** tab
-5. View:
-   - Invocations graph
-   - Duration metrics
-   - Error count
-   - Success rate
+   - `twin-prod-api` (si la desplegaste)
+3. Haz clic en `twin-dev-api`
+4. Ve a la pestaña **Monitor**
+5. Visualiza:
+   - Gráfico de invocaciones
+   - Métricas de duración
+   - Conteo de errores
+   - Tasa de éxito
 
-### Step 3: View CloudWatch Logs
+### Paso 3: Visualiza logs en CloudWatch
 
-1. In Lambda, click **View CloudWatch logs**
-2. Click on the latest log stream
-3. You can see:
-   - Each API request
-   - Bedrock model calls
-   - Response times
-   - Any errors
+1. En Lambda, haz clic en **View CloudWatch logs**
+2. Haz clic en el último log stream
+3. Podrás ver:
+   - Cada petición API
+   - Llamadas al modelo Bedrock
+   - Tiempos de respuesta
+   - Cualquier error
 
-### Step 4: Check Bedrock Usage
+### Paso 4: Revisa uso de Bedrock
 
-1. Navigate to **CloudWatch**
-2. Click **Metrics** → **All metrics**
-3. Click **AWS/Bedrock**
-4. Select **By Model Id**
-5. View metrics for your Nova model:
+1. Ve a **CloudWatch**
+2. Haz clic en **Metrics** → **All metrics**
+3. Haz clic en **AWS/Bedrock**
+4. Selecciona **By Model Id**
+5. Visualiza métricas:
    - InvocationLatency
    - InputTokenCount
    - OutputTokenCount
 
-### Step 5: View S3 Memory Storage
+### Paso 5: Visualiza el almacenamiento S3 de memoria
 
-1. Navigate to **S3**
-2. Click on `twin-dev-memory` bucket
-3. You'll see JSON files for each conversation session
-4. Click on a file to view the conversation history
+1. Ve a **S3**
+2. Haz clic en el bucket `twin-dev-memory`
+3. Verás archivos JSON por cada sesión de conversación
+4. Haz clic en un archivo para ver la conversación
 
-### Step 6: API Gateway Metrics
+### Paso 6: Métricas de API Gateway
 
-1. Navigate to **API Gateway**
-2. Click on `twin-dev-api-gateway`
-3. Click **Dashboard**
-4. View:
-   - API calls
-   - Latency
-   - 4xx and 5xx errors
+1. Ve a **API Gateway**
+2. Haz clic en `twin-dev-api-gateway`
+3. Haz clic en **Dashboard**
+4. Revisa:
+   - Llamadas a la API
+   - Latencia
+   - Errores 4xx y 5xx
 
-### Step 7: CloudFront Analytics
+### Paso 7: Analítica de CloudFront
 
-1. Navigate to **CloudFront**
-2. Click on your dev distribution
-3. Go to **Reports & analytics**
-4. View:
-   - Cache statistics
-   - Popular objects
-   - Viewers by location
+1. Ve a **CloudFront**
+2. Haz clic en tu distribución dev
+3. Ve a **Reports & analytics**
+4. Revisa:
+   - Estadísticas de caché
+   - Objetos populares
+   - Ubicación de visitantes
 
-## Part 9: Environment Management via GitHub
+## Parte 9: Gestión de entornos vía GitHub
 
-### Step 1: Test Environment Destruction
+### Paso 1: Prueba destrucción de entorno
 
-Let's test destroying an environment through GitHub Actions:
+Probemos destruir un entorno desde GitHub Actions:
 
-1. Go to your GitHub repository
-2. Click **Actions** tab
-3. Click **Destroy Environment** on the left
-4. Click **Run workflow**
-5. Select:
-   - Branch: `main`
-   - Environment: `test`
-   - Confirm: Type `test` in the confirmation field
-6. Click **Run workflow**
-7. Watch the destruction progress (5-10 minutes)
+1. Ve a tu repositorio GitHub
+2. Haz clic en **Actions**
+3. Haz clic en **Destroy Environment** a la izquierda
+4. Haz clic en **Run workflow**
+5. Selecciona:
+   - Rama: `main`
+   - Entorno: `test`
+   - Confirmar: Escribe `test` en el campo confirmación
+6. Haz clic en **Run workflow**
+7. Observa el progreso (5-10 minutos)
 
-### Step 2: Verify Destruction
+### Paso 2: Verifica destrucción
 
-After the workflow completes:
+Después:
 
-1. Check AWS Console
-2. Verify all `twin-test-*` resources are gone:
-   - Lambda function
+1. Revisa en AWS Console
+2. Verifica que los recursos `twin-test-*` hayan desaparecido:
+   - Función Lambda
    - API Gateway
-   - S3 buckets
-   - CloudFront distribution
+   - Buckets S3
+   - Distribución CloudFront
 
-### Step 3: Redeploy Test
+### Paso 3: Re-despliega test
 
-Let's redeploy to test:
+Re-despliega test así:
 
-1. In GitHub Actions, click **Deploy Digital Twin**
-2. Run workflow with environment: `test`
-3. Wait for completion
-4. Verify the test environment is back online
+1. En GitHub Actions, haz clic en **Deploy Digital Twin**
+2. Ejecuta workflow en entorno: `test`
+3. Espera a que finalice
+4. Verifica que funcione
 
-## Part 10: Final Cleanup and Cost Review
+## Parte 10: Limpieza final y revisión de costos
 
-### Step 1: Destroy All Environments
+### Paso 1: Destruye todos los entornos
 
-Use GitHub Actions to destroy all environments:
+Usa GitHub Actions para destruirlos todos:
 
-1. Destroy dev environment:
-   - Run **Destroy Environment** workflow
-   - Environment: `dev`
-   - Confirm: Type `dev`
+1. Destruye dev:
+   - Ejecuta **Destroy Environment**
+   - Entorno: `dev`
+   - Confirmar: escribe `dev`
 
-2. Destroy test environment (if not already destroyed):
-   - Run **Destroy Environment** workflow
-   - Environment: `test`
-   - Confirm: Type `test`
+2. Destruye test (si sigue activo):
+   - Ejecuta **Destroy Environment**
+   - Entorno: `test`
+   - Confirmar: escribe `test`
 
-3. Destroy prod environment (if you created one):
-   - Run **Destroy Environment** workflow
-   - Environment: `prod`
-   - Confirm: Type `prod`
+3. Destruye prod (si existe):
+   - Ejecuta **Destroy Environment**
+   - Entorno: `prod`
+   - Confirmar: escribe `prod`
 
-### Step 2: Sign In as Root User
+### Paso 2: Inicia sesión como root
 
-Now let's verify everything is clean and check costs:
+Verifiquemos que todo esté limpio y revisemos costos:
 
-1. Sign out from IAM user
-2. Sign in as **root user**
+1. Cierra sesión como usuario IAM
+2. Inicia sesión como **root**
 
-### Step 3: Verify Complete Cleanup
+### Paso 3: Verifica limpieza total
 
-#### Option A: Check Individual Services
+#### Opción A: Revisa servicios individualmente
 
-Check each service to ensure all project resources are removed:
+Verifica que no quede nada del proyecto:
 
-1. **Lambda**: No functions starting with `twin-`
-2. **S3**: Only the `twin-terraform-state-*` bucket should remain
-3. **API Gateway**: No `twin-` APIs
-4. **CloudFront**: No twin distributions
-5. **DynamoDB**: Only the `twin-terraform-locks` table should remain
-6. **IAM**: The `github-actions-twin-deploy` role should remain
+1. **Lambda**: No debe haber funciones `twin-`
+2. **S3**: Solo debe quedar `twin-terraform-state-*`
+3. **API Gateway**: Ninguna API `twin-`
+4. **CloudFront**: Ninguna distribución twin
+5. **DynamoDB**: Solo la tabla `twin-terraform-locks`
+6. **IAM**: El rol `github-actions-twin-deploy` debe quedar
 
-#### Option B: Use Resource Explorer (Recommended)
+#### Opción B: Usa Resource Explorer (recomendado)
 
-AWS Resource Explorer gives you a complete inventory of ALL resources in your account:
+AWS Resource Explorer lista TODOS los recursos:
 
-1. In AWS Console, search for **Resource Explorer**
-2. If not set up, click **Quick setup** (one-time setup, takes 2 minutes)
-3. Once ready, click **Resource search**
-4. In the search box, type: `tag.Project:twin`
-5. This shows all resources tagged with our project
+1. En AWS Console, busca **Resource Explorer**
+2. Si no está listo, haz clic en **Quick setup** (solo una vez, 2 minutos)
+3. Cuando esté listo, haz clic en **Resource search**
+4. En la caja de búsqueda pon: `tag.Project:twin`
+5. Verás todos los recursos con esa etiqueta
 
-To see ALL resources in your account (to find anything you might have missed):
+Para ver absolutamente TODO:
 
-1. In Resource Explorer, click **Resource search**
-2. Leave the search box empty
-3. Click **Search**
-4. This shows EVERY resource in your account
-5. Sort by **Type** to group similar resources
-6. Look for any unexpected resources that might be costing money
+1. En Resource Explorer, clic en **Resource search**
+2. Deja la caja vacía
+3. Haz clic en **Search**
+4. Verás TODOS los recursos de la cuenta
+5. Usa **Type** para agrupar y busca cualquier cosa rara
 
-#### Option C: Use AWS Tag Editor
+#### Opción C: Usa AWS Tag Editor
 
-Another way to find all tagged resources:
+Otra forma de ver recursos etiquetados:
 
-1. In AWS Console, search for **Tag Editor**
-2. Select:
-   - Regions: **All regions**
-   - Resource types: **All supported resource types**
-   - Tags: Key = `Project`, Value = `twin`
-3. Click **Search resources**
-4. This shows all project resources across all regions
+1. En la consola AWS, busca **Tag Editor**
+2. Elige:
+   - Regiones: **All regions**
+   - Tipos de recurso: **All supported resource types**
+   - Etiquetas: Clave = `Project`, Valor = `twin`
+3. Busca recursos
+4. Verás todos los recursos del proyecto
 
-#### Option D: Check Cost and Usage Report
+#### Opción D: Checa el reporte de costos y uso
 
-To see what's actually costing money:
+Para ver lo que realmente cuesta:
 
-1. Go to **Billing & Cost Management**
-2. Click **Cost Explorer** → **Cost and usage**
-3. Group by: **Service**
-4. Filter: Last 7 days
-5. Any service showing costs indicates active resources
+1. Ve a **Billing & Cost Management**
+2. Haz clic en **Cost Explorer** → **Cost and usage**
+3. Agrupa por: **Service**
+4. Filtra: Últimos 7 días
+5. Cualquier servicio con coste = recursos activos
 
-### Step 4: Review Costs
+### Paso 4: Revisa los costos
 
-1. Navigate to **Billing & Cost Management**
-2. Click **Cost Explorer**
-3. Set date range to last 7 days
-4. Filter by service to see costs:
-   - Lambda: Usually under $1
-   - API Gateway: Usually under $1
-   - S3: Minimal (cents)
-   - CloudFront: Minimal (cents)
-   - Bedrock: Depends on usage, typically under $5
-   - DynamoDB: Minimal (cents)
+1. Entra a **Billing & Cost Management**
+2. Haz clic en **Cost Explorer**
+3. Pon últimos 7 días
+4. Filtra por servicio para ver:
+   - Lambda: normalmente < $1
+   - API Gateway: normalmente < $1
+   - S3: mínimo (centavos)
+   - CloudFront: mínimo (centavos)
+   - Bedrock: depende uso, normalmente < $5
+   - DynamoDB: mínimo (centavos)
 
-### Step 5: Optional - Clean Up GitHub Actions Resources
+### Paso 5: Opcional - limpia los recursos de GitHub Actions
 
-The remaining resources have minimal ongoing costs:
-- **IAM Role** (`github-actions-twin-deploy`): FREE - No cost for IAM
-- **S3 State Bucket** (`twin-terraform-state-*`): ~$0.02/month for storing state files
-- **DynamoDB Table** (`twin-terraform-locks`): ~$0.00/month with PAY_PER_REQUEST (only charges when used)
+Los recursos restantes tienen coste casi nulo:
+- **Rol IAM** (`github-actions-twin-deploy`): GRATIS
+- **Bucket S3 de estado** (`twin-terraform-state-*`): ~ $0.02/mes
+- **Tabla DynamoDB** (`twin-terraform-locks`): ~ $0/mes mientras no se use
 
-**Total monthly cost if left running: Less than $0.05**
+**Coste mensual si se deja: menos de $0.05**
 
-If you want to completely remove everything (only do this if you're completely done with the course):
+Si quieres eliminar absolutamente TODO:
 
 ```bash
-# Sign in as IAM user first, then:
+# Inicia sesión como usuario IAM, luego:
 cd twin/terraform
 
-# 1. Delete the IAM role for GitHub Actions
+# 1. Elimina el rol de GitHub Actions
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AWSLambda_FullAccess
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator
@@ -1640,206 +1617,206 @@ aws iam detach-role-policy --role-name github-actions-twin-deploy --policy-arn a
 aws iam delete-role-policy --role-name github-actions-twin-deploy --policy-name github-actions-additional
 aws iam delete-role --role-name github-actions-twin-deploy
 
-# 2. Empty and delete the state bucket
+# 2. Vacía y elimina el bucket de estado
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 aws s3 rm s3://twin-terraform-state-${AWS_ACCOUNT_ID} --recursive
 aws s3 rb s3://twin-terraform-state-${AWS_ACCOUNT_ID}
 
-# 3. Delete the DynamoDB table
+# 3. Elimina la tabla DynamoDB
 aws dynamodb delete-table --table-name twin-terraform-locks
 ```
 
-**Recommendation**: Leave these resources in place. They cost almost nothing and allow you to easily redeploy the project later if needed.
+**Recomendación**: Deja esos recursos, no cuestan casi nada y te permiten redeplegar el proyecto fácilmente.
 
-## Congratulations! 🎉
+## ¡Felicidades! 🎉
 
-You've successfully completed Week 2 and built a production-grade AI deployment system!
+¡Has completado la Semana 2 y construido un sistema de despliegue de IA de nivel producción!
 
-### What You've Accomplished This Week
+### ¿Qué lograste esta semana?
 
-**Day 1**: Built a local Digital Twin with memory
-**Day 2**: Deployed to AWS with Lambda, S3, CloudFront
-**Day 3**: Integrated AWS Bedrock for AI responses
-**Day 4**: Automated with Terraform and multiple environments
-**Day 5**: Implemented CI/CD with GitHub Actions
+**Día 1**: Gemelo Digital local con memoria  
+**Día 2**: Despliegue en AWS con Lambda, S3, CloudFront  
+**Día 3**: Integración de AWS Bedrock para respuesta IA  
+**Día 4**: Automatización con Terraform y múltiples entornos  
+**Día 5**: CI/CD con GitHub Actions
 
-### Your Final Architecture
+### Arquitectura Final
 
 ```
-GitHub Repository
-    ↓ (Push to main)
+Repositorio GitHub
+    ↓ (Push a main)
 GitHub Actions (CI/CD)
-    ↓ (Automated deployment)
-AWS Infrastructure
-    ├── Dev Environment
-    ├── Test Environment
-    └── Prod Environment
+    ↓ (Despliegue automático)
+Infraestructura AWS
+    ├── Entorno Dev
+    ├── Entorno Test
+    └── Entorno Prod
 
-Each Environment:
+Cada entorno:
     ├── CloudFront → S3 (Frontend)
     ├── API Gateway → Lambda (Backend)
-    ├── Bedrock (AI)
-    └── S3 (Memory)
+    ├── Bedrock (IA)
+    └── S3 (Memoria)
 
-All Managed by:
+Todo gestionado por:
     ├── Terraform (IaC)
     ├── GitHub Actions (CI/CD)
-    └── S3 + DynamoDB (State)
+    └── S3 + DynamoDB (Estado)
 ```
 
-### Key Skills You've Learned
+### Habilidades clave que aprendiste
 
-1. **Modern DevOps Practices**
-   - Infrastructure as Code
-   - CI/CD pipelines
-   - Multi-environment management
-   - Automated testing and deployment
+1. **Prácticas DevOps modernas**
+   - Infraestructura como código
+   - Pipelines CI/CD
+   - Gestión multi-entorno
+   - Pruebas y despliegue automatizado
 
-2. **AWS Services Mastery**
-   - Serverless computing (Lambda)
-   - API management (API Gateway)
-   - Static hosting (S3, CloudFront)
-   - AI services (Bedrock)
-   - State management (DynamoDB)
+2. **Dominio de servicios AWS**
+   - Computación sin servidor (Lambda)
+   - Gestión de APIs (API Gateway)
+   - Hosting estático (S3, CloudFront)
+   - Servicios de IA (Bedrock)
+   - Gestión de estado (DynamoDB)
 
-3. **Security Best Practices**
-   - OIDC authentication
-   - IAM roles and policies
-   - Secrets management
-   - Least privilege access
+3. **Buenas prácticas de seguridad**
+   - Autenticación OIDC
+   - Roles y políticas IAM
+   - Gestión de secretos
+   - Acceso de mínimo privilegio
 
-4. **Professional Development Workflow**
-   - Version control with Git
-   - Pull request workflows
-   - Automated deployments
-   - Infrastructure testing
+4. **Flujo profesional de desarrollo**
+   - Control de versiones en Git
+   - Pull requests (PRs)
+   - Despliegues automatizados
+   - Testeo de infraestructura
 
-## Best Practices Going Forward
+## Buenas prácticas a futuro
 
-### Development Workflow
+### Flujo de desarrollo
 
-1. **Always use branches for features** (even though we didn't today)
+1. **Usa ramas para features siempre**  
    ```bash
-   git checkout -b feature/new-feature
-   # Make changes
-   git push -u origin feature/new-feature
-   # Create pull request
+   git checkout -b feature/nueva-feature
+   # Haz cambios
+   git push -u origin feature/nueva-feature
+   # Crea pull request
    ```
 
-2. **Test in dev/test before prod**
-   - Deploy to dev automatically
-   - Manually promote to test
-   - Carefully deploy to prod
+2. **Testea en dev/test antes de prod**
+   - Dev automático
+   - Promoción manual a test
+   - Cuidado en prod
 
-3. **Monitor costs regularly**
-   - Check CloudWatch metrics
-   - Review billing dashboard weekly
-   - Set up anomaly detection
+3. **Monitorea costos regularmente**
+   - Métricas en CloudWatch
+   - Dashboard de facturación semanal
+   - Alerta ante anomalías
 
-### Security Reminders
+### Recordatorios de seguridad
 
-1. **Never commit secrets**
-   - Use GitHub Secrets
-   - Use environment variables
-   - Use AWS Secrets Manager for sensitive data
+1. **Nunca subas secretos**
+   - Usa GitHub Secrets
+   - Usa variables de entorno
+   - Considera AWS Secrets Manager
 
-2. **Rotate credentials regularly**
-   - Update IAM roles periodically
-   - Refresh API keys
-   - Review access logs
+2. **Rota credenciales periódicamente**
+   - Actualiza roles IAM
+   - Refresca API keys
+   - Revisa logs de acceso
 
-3. **Follow least privilege**
-   - Only grant necessary permissions
-   - Use separate roles for different purposes
-   - Audit permissions regularly
+3. **Aplica mínimo privilegio**
+   - Solo los permisos necesarios
+   - Roles separados por tareas
+   - Auditoría periódica
 
-## Troubleshooting Common Issues
+## Solución de problemas comunes
 
-### GitHub Actions Failures
+### Fallos en GitHub Actions
 
 **"Could not assume role"**
-- Check AWS_ROLE_ARN secret is correct
-- Verify GitHub repository name matches OIDC configuration
-- Ensure role trust policy is correct
+- Verifica el secreto AWS_ROLE_ARN
+- Asegura que el nombre de repo coincide con OIDC
+- Política de confianza correcta
 
 **"Terraform state lock"**
-- Someone else might be deploying
-- Check DynamoDB table for locks
-- Force unlock if needed: `terraform force-unlock LOCK_ID`
+- Puede estar desplegando otra persona
+- Verifica la tabla DynamoDB
+- Desbloquea: `terraform force-unlock LOCK_ID`
 
 **"S3 bucket already exists"**
-- Bucket names must be globally unique
-- Add random suffix or use account ID
+- Los nombres deben ser únicos globalmente
+- Agrega sufijo aleatorio o tu ID de cuenta
 
-### Deployment Issues
+### Problemas de despliegue
 
-**Frontend not updating**
-- CloudFront cache needs invalidation
-- Check GitHub Actions ran successfully
-- Verify S3 sync completed
+**El frontend no se actualiza**
+- Invalida caché de CloudFront
+- Verifica despliegue exitoso en GitHub Actions
+- Comprueba sincronización S3
 
-**API returning 403**
-- Check CORS configuration
-- Verify API Gateway deployment
-- Check Lambda permissions
+**API devuelve 403**
+- Revisa configuración CORS
+- Verifica despliegue API Gateway
+- Checa permisos de Lambda
 
-**Bedrock not responding**
-- Verify model access is granted
-- Check IAM role has Bedrock permissions
-- Review CloudWatch logs
+**Bedrock no responde**
+- Verifica acceso al modelo
+- Revisa permisos IAM de Bedrock
+- Revisa logs en CloudWatch
 
-## Next Steps and Extensions
+## Próximos pasos y extensiones
 
-### Potential Enhancements
+### Mejoras potenciales
 
-1. **Add Testing**
-   - Unit tests for Lambda
-   - Integration tests for API
-   - End-to-end tests with Cypress
+1. **Agregar tests**
+   - Tests unitarios Lambda
+   - Tests integración API
+   - End-to-end con Cypress
 
-2. **Enhance Monitoring**
-   - Custom CloudWatch dashboards
-   - Alerts for errors
-   - Performance monitoring
+2. **Mejorar monitoreo**
+   - Dashboards personalizados CloudWatch
+   - Alertas de errores
+   - Monitoreo de rendimiento
 
-3. **Add Features**
-   - User authentication
-   - Multiple twin personalities
-   - Conversation analytics
-   - Voice interface
+3. **Agregar funcionalidades**
+   - Autenticación de usuarios
+   - Varias personalidades de twin
+   - Analítica de conversación
+   - Interfaz de voz
 
-4. **Improve CI/CD**
+4. **Mejorar CI/CD**
    - Blue-green deployments
    - Canary releases
-   - Automatic rollbacks
+   - Rollbacks automáticos
 
-### Learning Resources
+### Recursos de aprendizaje
 
-- [GitHub Actions Documentation](https://docs.github.com/actions)
+- [Documentación GitHub Actions](https://docs.github.com/actions)
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
-- [Terraform Best Practices](https://www.terraform.io/docs/cloud/guides/recommended-practices)
-- [DevOps on AWS](https://aws.amazon.com/devops/)
+- [Mejores prácticas Terraform](https://www.terraform.io/docs/cloud/guides/recommended-practices)
+- [DevOps en AWS](https://aws.amazon.com/devops/)
 
-## Final Notes
+## Notas finales
 
-### Keeping Costs Low
+### Mantén bajos tus costos
 
-To minimize ongoing costs:
-1. Destroy environments when not in use
-2. Use Nova Micro for development
-3. Set API rate limiting
-4. Monitor usage regularly
-5. Use the AWS Free Tier effectively
+Para minimizar costos:
+1. Destruye entornos que no uses
+2. Usa Nova Micro en desarrollo
+3. Limita tasa de las APIs
+4. Monitorea uso regularmente
+5. Aprovecha el Free Tier de AWS
 
-### Repository Maintenance
+### Mantenimiento del repositorio
 
-Keep your repository healthy:
-1. Regular dependency updates
-2. Security scanning with Dependabot
-3. Clear documentation
-4. Meaningful commit messages
-5. Protected main branch
+Mantén tu repo en forma:
+1. Actualizaciones regulares de dependencias
+2. Escaneo de seguridad con Dependabot
+3. Documentación clara
+4. Mensajes de commit significativos
+5. Rama main protegida
 
-You've built something amazing - a fully automated, production-ready AI application with professional DevOps practices. This is how real companies deploy and manage their infrastructure!
+¡Construiste algo increíble: una IA lista para producción y 100% automatizada con buenas prácticas DevOps! Así despliegan las compañías reales sus sistemas.
 
-Great job completing Week 2! 🚀
+¡Gran trabajo completando la Semana 2! 🚀

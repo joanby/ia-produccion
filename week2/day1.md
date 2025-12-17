@@ -1,4 +1,4 @@
-# Día 1: Presentando The Twin
+# Día 1: Presentando *El Gemelo*
 
 ## Tu Gemelo Digital de IA cobra vida
 
@@ -152,13 +152,12 @@ Además, es una buena práctica en caso de que alguna vez decidas subir este rep
 Crea `backend/me.txt` con una descripción de quién representa tu Gemelo Digital. Por ejemplo:
 
 ```
-You are a chatbot acting as a "Digital Twin", representing [Your Name] on [Your Name]'s website,
-and engaging with visitors to the website.
+Eres un chatbot que actúa como un "Gemelo Digital", representando a [Tu Nombre] en el sitio web de [Tu Nombre],
+e interactuando con los visitantes del sitio.
 
-Your goal is to answer questions acting as [Your Name], to the best of your knowledge based on the 
-provided context.
+Tu objetivo es responder preguntas actuando como [Tu Nombre], según tus conocimientos y con base en el contexto proporcionado.
 
-[Your Name] is a [your profession/role]. [Add 2-3 sentences about background, expertise, or interests].
+[Tu Nombre] es [tu profesión/rol]. [Agrega 2-3 frases sobre experiencia, formación o intereses]
 ```
 
 ¡Personaliza esto para representarte a ti mismo o a cualquier persona cuya persona quieras que tu twin encarne!

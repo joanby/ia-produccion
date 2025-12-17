@@ -1,106 +1,106 @@
-# Day 4: Infrastructure as Code with Terraform
+# Día 4: Infraestructura como Código con Terraform
 
-## From Manual to Automated Deployment
+## De la Implementación Manual a la Automatizada
 
-Welcome to Day 4! Today marks a significant shift in how we deploy our Digital Twin. We're moving from manual AWS Console operations to Infrastructure as Code (IaC) using Terraform. This transformation brings version control, repeatability, and the ability to deploy multiple environments with a single command. By the end of today, you'll be managing dev, test, and production environments like a professional DevOps engineer!
+¡Bienvenido al Día 4! Hoy marca un cambio significativo en cómo implementamos nuestro Digital Twin. Pasamos de operar manualmente en la consola de AWS a usar Infraestructura como Código (IaC) con Terraform. Esta transformación aporta control de versiones, repetibilidad y la capacidad de desplegar múltiples entornos con un solo comando. ¡Al finalizar el día de hoy, estarás gestionando entornos de dev, test y producción como un ingeniero DevOps profesional!
 
-## What You'll Learn Today
+## Qué aprenderás hoy
 
-- **Terraform fundamentals** - Infrastructure as Code concepts
-- **State management** - How Terraform tracks your resources
-- **Workspaces** - Managing multiple environments
-- **Automated deployment** - One-command infrastructure provisioning
-- **Environment isolation** - Separate dev, test, and production
-- **Optional: Custom domains** - Professional DNS configuration
+- **Fundamentos de Terraform** - Conceptos de Infraestructura como Código
+- **Gestión de estado** - Cómo Terraform rastrea tus recursos
+- **Workspaces** - Gestión de múltiples entornos
+- **Despliegue automatizado** - Infraestructura lista con un solo comando
+- **Aislamiento de entornos** - Separación de dev, test y producción
+- **Opcional: Dominios personalizados** - Configuración profesional de DNS
 
-## Part 1: Clean Slate - Remove Manual Resources
+## Parte 1: Borrón y cuenta nueva - Eliminar recursos manuales
 
-Before we embrace automation, let's clean up all the resources we created manually in Days 2 and 3. This final console tour will help reinforce what Terraform will manage for us.
+Antes de abrazar la automatización, limpiemos todos los recursos que creamos manualmente en los Días 2 y 3. Este último recorrido por la consola te ayudará a reforzar lo que Terraform gestionará por nosotros.
 
-### Step 1: Delete Lambda Function
+### Paso 1: Eliminar la función Lambda
 
-1. Sign in to AWS Console as `aiengineer`
-2. Navigate to **Lambda**
-3. Select `twin-api` function
-4. Click **Actions** → **Delete**
-5. Type "delete" to confirm
-6. Click **Delete**
+1. Inicia sesión en la consola de AWS como `aiengineer`
+2. Ve a **Lambda**
+3. Selecciona la función `twin-api`
+4. Haz clic en **Actions** → **Delete**
+5. Escribe "delete" para confirmar
+6. Haz clic en **Delete**
 
-### Step 2: Delete API Gateway
+### Paso 2: Eliminar API Gateway
 
-1. Navigate to **API Gateway**
-2. Click on `twin-api-gateway`
-3. Click **Actions** → **Delete**
-4. Type the API name to confirm
-5. Click **Delete**
+1. Ve a **API Gateway**
+2. Haz clic en `twin-api-gateway`
+3. Haz clic en **Actions** → **Delete**
+4. Escribe el nombre de la API para confirmar
+5. Haz clic en **Delete**
 
-### Step 3: Empty and Delete S3 Buckets
+### Paso 3: Vaciar y eliminar los buckets de S3
 
-**Memory Bucket:**
-1. Navigate to **S3**
-2. Click on your memory bucket (e.g., `twin-memory-xyz`)
-3. Click **Empty**
-4. Type "permanently delete" to confirm
-5. Click **Empty**
-6. After emptying, click **Delete**
-7. Type the bucket name to confirm
-8. Click **Delete bucket**
+**Bucket de memoria:**
+1. Ve a **S3**
+2. Haz clic en tu bucket de memoria (ejemplo: `twin-memory-xyz`)
+3. Haz clic en **Empty**
+4. Escribe "permanently delete" para confirmar
+5. Haz clic en **Empty**
+6. Después de vaciar el bucket, haz clic en **Delete**
+7. Escribe el nombre del bucket para confirmar
+8. Haz clic en **Delete bucket**
 
-**Frontend Bucket:**
-1. Click on your frontend bucket (e.g., `twin-frontend-xyz`)
-2. Repeat the empty and delete process
+**Bucket de frontend:**
+1. Haz clic en tu bucket de frontend (ejemplo: `twin-frontend-xyz`)
+2. Repite el proceso de vaciado y eliminación
 
-### Step 4: Delete CloudFront Distribution
+### Paso 4: Eliminar la distribución de CloudFront
 
-1. Navigate to **CloudFront**
-2. Select your distribution
-3. Click **Disable** (if it's enabled)
-4. Wait for status to change to "Deployed" (5-10 minutes)
-5. Once disabled, click **Delete**
-6. Click **Delete** to confirm
+1. Ve a **CloudFront**
+2. Selecciona tu distribución
+3. Haz clic en **Disable** (si está habilitada)
+4. Espera que el estado cambie a "Deployed" (5-10 minutos)
+5. Una vez deshabilitada, haz clic en **Delete**
+6. Haz clic en **Delete** para confirmar
 
-### Step 5: Verify Clean State
+### Paso 5: Verificar estado limpio
 
-1. Check each service to ensure no twin-related resources remain:
-   - Lambda: No `twin-api` functions
-   - API Gateway: No `twin-api-gateway` APIs
-   - S3: No `twin-` prefixed buckets
-   - CloudFront: No distributions for your twin
+1. Revisa cada servicio para asegurar que no quedan recursos relacionados con twin:
+   - Lambda: Sin funciones `twin-api`
+   - API Gateway: Sin APIs `twin-api-gateway`
+   - S3: Sin buckets que empiecen por `twin-`
+   - CloudFront: Sin distribuciones de tu twin
 
-✅ **Checkpoint**: You now have a clean AWS account, ready for Terraform to manage everything!
+✅ **Punto de control**: ¡Ahora tienes una cuenta AWS limpia, lista para que Terraform gestione todo!
 
-## Part 2: Understanding Terraform
+## Parte 2: Entendiendo Terraform
 
-### What is Infrastructure as Code?
+### ¿Qué es Infraestructura como Código?
 
-Infrastructure as Code (IaC) treats your infrastructure configuration as source code. Instead of clicking through console interfaces, you define your infrastructure in text files that can be:
-- **Version controlled** - Track changes over time
-- **Reviewed** - Use pull requests for infrastructure changes
-- **Automated** - Deploy with CI/CD pipelines
-- **Repeatable** - Create identical environments
+La Infraestructura como Código (IaC) trata la configuración de tu infraestructura como código fuente. En lugar de hacer clics en la consola, defines tu infraestructura en archivos de texto que pueden ser:
+- **Versionados** - Sigue los cambios en el tiempo
+- **Revisados** - Usa pull request para cambios en infraestructura
+- **Automatizados** - Despliegue con pipelines CI/CD
+- **Repetibles** - Crea entornos idénticos
 
-### Key Terraform Concepts
+### Conceptos clave de Terraform
 
-**1. Resources**: The building blocks - each AWS service you want to create
+**1. Recursos:** Los bloques de construcción - cada servicio de AWS que quieres crear
 ```hcl
 resource "aws_s3_bucket" "example" {
   bucket = "my-bucket-name"
 }
 ```
 
-**2. State**: Terraform's record of what it has created
-- Stored in `terraform.tfstate` file
-- Maps your configuration to real resources
-- Critical for updates and deletions
+**2. Estado:** Registro de Terraform de lo que ha creado
+- Almacenado en el archivo `terraform.tfstate`
+- Relaciona tu configuración con recursos reales
+- Crítico para actualizaciones y eliminaciones
 
-**3. Providers**: Plugins that interact with cloud providers
+**3. Proveedores (providers):** Plugins que interactúan con los proveedores de la nube
 ```hcl
 provider "aws" {
   region = "us-east-1"
 }
 ```
 
-**4. Variables**: Parameterize your configuration
+**4. Variables:** Parametrizan tu configuración
 ```hcl
 variable "environment" {
   description = "Environment name"
@@ -108,50 +108,50 @@ variable "environment" {
 }
 ```
 
-**5. Workspaces**: Separate state for different environments
-- Each workspace has its own state file
-- Perfect for dev/test/prod separation
+**5. Workspaces:** Estado separado para diferentes entornos
+- Cada workspace tiene su propio archivo de estado
+- Perfecto para separar dev/test/prod
 
-### Step 1: Install Terraform
+### Paso 1: Instalar Terraform
 
-As of August 2025, Terraform installation has changed due to licensing updates. We'll use the official distribution.
+Desde agosto de 2025, la instalación de Terraform ha cambiado debido a actualizaciones de licencia. Usaremos la distribución oficial.
 
-**Mac (using Homebrew):**
+**Mac (usando Homebrew):**
 ```bash
 brew tap hashicorp/tap
 brew install hashicorp/tap/terraform
 ```
 
 **Mac/Linux (manual):**
-1. Visit: https://developer.hashicorp.com/terraform/install
-2. Download the appropriate package for your system
-3. Extract and move to PATH:
+1. Visita: https://developer.hashicorp.com/terraform/install
+2. Descarga el paquete adecuado para tu sistema
+3. Extrae y mueve a tu PATH:
 ```bash
-# Example for Mac (adjust URL for your system)
+# Ejemplo para Mac (ajusta la URL para tu sistema)
 curl -O https://releases.hashicorp.com/terraform/1.10.0/terraform_1.10.0_darwin_amd64.zip
 unzip terraform_1.10.0_darwin_amd64.zip
 sudo mv terraform /usr/local/bin/
 ```
 
 **Windows:**
-1. Visit: https://developer.hashicorp.com/terraform/install
-2. Download the Windows package
-3. Extract the .exe file
-4. Add to your PATH:
-   - Right-click "This PC" → Properties
-   - Advanced system settings → Environment Variables
-   - Edit PATH and add the Terraform directory
+1. Visita: https://developer.hashicorp.com/terraform/install
+2. Descarga el paquete de Windows
+3. Extrae el archivo .exe
+4. Agrega a tu PATH:
+   - Haz clic derecho en "Este equipo" → Propiedades
+   - Configuración avanzada del sistema → Variables de entorno
+   - Edita PATH y agrega el directorio de Terraform
 
-**Verify Installation:**
+**Verificar instalación:**
 ```bash
 terraform --version
 ```
 
-You should see something like: `Terraform v1.10.0` (version may vary)
+Deberías ver algo como: `Terraform v1.10.0` (la versión puede variar)
 
-### Step 2: Update .gitignore
+### Paso 2: Actualiza .gitignore
 
-Add Terraform-specific entries to your `.gitignore`:
+Agrega entradas específicas de Terraform a tu `.gitignore`:
 
 ```gitignore
 # Terraform
@@ -164,11 +164,11 @@ terraform.tfstate.d/
 !terraform.tfvars
 !prod.tfvars
 
-# Lambda packages
+# Paquetes Lambda
 lambda-deployment.zip
 lambda-package/
 
-# Environment files
+# Archivos de entorno
 .env
 .env.*
 
@@ -190,28 +190,28 @@ uv.lock
 .DS_Store
 ```
 
-## Part 3: Create Terraform Configuration
+## Parte 3: Crear la configuración de Terraform
 
-### Step 1: Create Terraform Directory Structure
+### Paso 1: Crear la estructura de directorios de Terraform
 
-In Cursor's file explorer (the left sidebar):
+En el explorador de archivos de Cursor (la barra lateral izquierda):
 
-1. Right-click in the file explorer in the blank space below all the files
-2. Select **New Folder**
-3. Name it `terraform`
+1. Haz clic derecho en el espacio en blanco bajo todos los archivos
+2. Selecciona **Nueva Carpeta**
+3. Llámala `terraform`
 
-Your project structure should now have:
+La estructura del proyecto ahora tendrá:
 ```
 twin/
 ├── backend/
 ├── frontend/
 ├── memory/
-└── terraform/   (new)
+└── terraform/   (nuevo)
 ```
 
-### Step 2: Create Provider Configuration
+### Paso 2: Crear la configuración del proveedor
 
-Create `terraform/versions.tf`:
+Crea `terraform/versions.tf`:
 
 ```hcl
 terraform {
@@ -226,7 +226,7 @@ terraform {
 }
 
 provider "aws" {
-  # Uses AWS CLI configuration (aws configure)
+  # Usa la configuración AWS CLI (aws configure)
 }
 
 provider "aws" {
@@ -235,72 +235,72 @@ provider "aws" {
 }
 ```
 
-### Step 3: Define Variables
+### Paso 3: Definir variables
 
-Create `terraform/variables.tf`:
+Crea `terraform/variables.tf`:
 
 ```hcl
 variable "project_name" {
-  description = "Name prefix for all resources"
+  description = "Prefijo de nombre para todos los recursos"
   type        = string
   validation {
     condition     = can(regex("^[a-z0-9-]+$", var.project_name))
-    error_message = "Project name must contain only lowercase letters, numbers, and hyphens."
+    error_message = "El nombre del proyecto solo debe contener letras minúsculas, números y guiones."
   }
 }
 
 variable "environment" {
-  description = "Environment name (dev, test, prod)"
+  description = "Nombre del entorno (dev, test, prod)"
   type        = string
   validation {
     condition     = contains(["dev", "test", "prod"], var.environment)
-    error_message = "Environment must be one of: dev, test, prod."
+    error_message = "El entorno debe ser uno de: dev, test, prod."
   }
 }
 
 variable "bedrock_model_id" {
-  description = "Bedrock model ID"
+  description = "ID del modelo Bedrock"
   type        = string
   default     = "amazon.nova-micro-v1:0"
 }
 
 variable "lambda_timeout" {
-  description = "Lambda function timeout in seconds"
+  description = "Timeout de la función Lambda en segundos"
   type        = number
   default     = 60
 }
 
 variable "api_throttle_burst_limit" {
-  description = "API Gateway throttle burst limit"
+  description = "Límite de ráfaga de API Gateway"
   type        = number
   default     = 10
 }
 
 variable "api_throttle_rate_limit" {
-  description = "API Gateway throttle rate limit"
+  description = "Límite de tasa de API Gateway"
   type        = number
   default     = 5
 }
 
 variable "use_custom_domain" {
-  description = "Attach a custom domain to CloudFront"
+  description = "Vincular un dominio personalizado a CloudFront"
   type        = bool
   default     = false
 }
 
 variable "root_domain" {
-  description = "Apex domain name, e.g. mydomain.com"
+  description = "Nombre del dominio raíz, ej. midominio.com"
   type        = string
   default     = ""
 }
 ```
 
-### Step 4: Create Main Infrastructure
+### Paso 4: Crear la infraestructura principal
 
-Create `terraform/main.tf`:
+Crea `terraform/main.tf`:
 
 ```hcl
-# Data source to get current AWS account ID
+# Fuente de datos para obtener el ID actual de cuenta AWS
 data "aws_caller_identity" "current" {}
 
 locals {
@@ -318,7 +318,7 @@ locals {
   }
 }
 
-# S3 bucket for conversation memory
+# Bucket S3 para memoria de conversación
 resource "aws_s3_bucket" "memory" {
   bucket = "${local.name_prefix}-memory-${data.aws_caller_identity.current.account_id}"
   tags   = local.common_tags
@@ -341,7 +341,7 @@ resource "aws_s3_bucket_ownership_controls" "memory" {
   }
 }
 
-# S3 bucket for frontend static website
+# Bucket S3 para el sitio web estático del frontend
 resource "aws_s3_bucket" "frontend" {
   bucket = "${local.name_prefix}-frontend-${data.aws_caller_identity.current.account_id}"
   tags   = local.common_tags
@@ -387,7 +387,7 @@ resource "aws_s3_bucket_policy" "frontend" {
   depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
 
-# IAM role for Lambda
+# Rol IAM para Lambda
 resource "aws_iam_role" "lambda_role" {
   name = "${local.name_prefix}-lambda-role"
   tags = local.common_tags
@@ -421,14 +421,14 @@ resource "aws_iam_role_policy_attachment" "lambda_s3" {
   role       = aws_iam_role.lambda_role.name
 }
 
-# Lambda function
+# Función Lambda
 resource "aws_lambda_function" "api" {
   filename         = "${path.module}/../backend/lambda-deployment.zip"
   function_name    = "${local.name_prefix}-api"
   role             = aws_iam_role.lambda_role.arn
   handler          = "lambda_handler.handler"
   source_code_hash = filebase64sha256("${path.module}/../backend/lambda-deployment.zip")
-  runtime          = "python3.12"
+  runtime          = "python3.13"
   architectures    = ["x86_64"]
   timeout          = var.lambda_timeout
   tags             = local.common_tags
@@ -442,7 +442,7 @@ resource "aws_lambda_function" "api" {
     }
   }
 
-  # Ensure Lambda waits for the distribution to exist
+  # Asegurar que Lambda espera a que la distribución exista
   depends_on = [aws_cloudfront_distribution.main]
 }
 
@@ -479,7 +479,7 @@ resource "aws_apigatewayv2_integration" "lambda" {
   integration_uri  = aws_lambda_function.api.invoke_arn
 }
 
-# API Gateway Routes
+# Rutas de API Gateway
 resource "aws_apigatewayv2_route" "get_root" {
   api_id    = aws_apigatewayv2_api.main.id
   route_key = "GET /"
@@ -498,7 +498,7 @@ resource "aws_apigatewayv2_route" "get_health" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
-# Lambda permission for API Gateway
+# Permiso de Lambda para API Gateway
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -507,7 +507,7 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
 }
 
-# CloudFront distribution
+# Distribución de CloudFront
 resource "aws_cloudfront_distribution" "main" {
   aliases = local.aliases
   
@@ -566,7 +566,7 @@ resource "aws_cloudfront_distribution" "main" {
   }
 }
 
-# Optional: Custom domain configuration (only created when use_custom_domain = true)
+# Opcional: configuración de dominio personalizado (solo si use_custom_domain = true)
 data "aws_route53_zone" "root" {
   count        = var.use_custom_domain ? 1 : 0
   name         = var.root_domain
@@ -658,45 +658,45 @@ resource "aws_route53_record" "alias_www_ipv6" {
 }
 ```
 
-### Step 5: Define Outputs
+### Paso 5: Definir outputs (salidas)
 
-Create `terraform/outputs.tf`:
+Crea `terraform/outputs.tf`:
 
 ```hcl
 output "api_gateway_url" {
-  description = "URL of the API Gateway"
+  description = "URL de la API Gateway"
   value       = aws_apigatewayv2_api.main.api_endpoint
 }
 
 output "cloudfront_url" {
-  description = "URL of the CloudFront distribution"
+  description = "URL de la distribución de CloudFront"
   value       = "https://${aws_cloudfront_distribution.main.domain_name}"
 }
 
 output "s3_frontend_bucket" {
-  description = "Name of the S3 bucket for frontend"
+  description = "Nombre del bucket S3 para el frontend"
   value       = aws_s3_bucket.frontend.id
 }
 
 output "s3_memory_bucket" {
-  description = "Name of the S3 bucket for memory storage"
+  description = "Nombre del bucket S3 para almacenamiento de memoria"
   value       = aws_s3_bucket.memory.id
 }
 
 output "lambda_function_name" {
-  description = "Name of the Lambda function"
+  description = "Nombre de la función Lambda"
   value       = aws_lambda_function.api.function_name
 }
 
 output "custom_domain_url" {
-  description = "Root URL of the production site"
+  description = "URL raíz del sitio en producción"
   value       = var.use_custom_domain ? "https://${var.root_domain}" : ""
 }
 ```
 
-### Step 6: Create Default Variable Values
+### Paso 6: Crear los valores por defecto de las variables
 
-Create `terraform/terraform.tfvars`:
+Crea `terraform/terraform.tfvars`:
 
 ```hcl
 project_name             = "twin"
@@ -709,41 +709,41 @@ use_custom_domain        = false
 root_domain              = ""
 ```
 
-### Step 7: Update Frontend to Use Environment Variables
+### Paso 7: Actualizar el frontend para utilizar variables de entorno
 
-Before we create our deployment scripts, we need to update the frontend to use environment variables for the API URL instead of hardcoding it.
+Antes de crear nuestros scripts de despliegue, necesitamos actualizar el frontend para que utilice variables de entorno para el URL de la API en lugar de hardcodearlo.
 
-Update `frontend/components/twin.tsx` - find the fetch call (around line 43) and replace:
+Actualiza `frontend/components/twin.tsx` - busca la llamada a fetch (alrededor de la línea 43) y reemplaza:
 
 ```typescript
-// Find this line:
+// Busca esta línea:
 const response = await fetch('http://localhost:8000/chat', {
 
-// Replace with:
+// Reemplaza por:
 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/chat`, {
 ```
 
-This change allows the frontend to:
-- Use `http://localhost:8000` during local development
-- Use the production API URL (set via environment variable) when deployed
+Este cambio permite al frontend:
+- Usar `http://localhost:8000` durante el desarrollo local
+- Usar el URL de producción de la API (definido por variable de entorno) cuando se despliegue
 
-**Note**: Next.js requires environment variables accessible in the browser to be prefixed with `NEXT_PUBLIC_`.
+**Nota**: Next.js requiere que las variables de entorno accesibles desde el navegador tengan el prefijo `NEXT_PUBLIC_`.
 
-## Part 4: Create Deployment Scripts
+## Parte 4: Crear scripts de despliegue
 
-### Step 1: Create Scripts Directory
+### Paso 1: Crear el directorio de scripts
 
-In Cursor's file explorer (the left sidebar):
+En el explorador de archivos de Cursor (barra lateral izquierda):
 
-1. Right-click in the File Explorer in the blank space under the files
-2. Select **New Folder**
-3. Name it `scripts`
+1. Haz clic derecho en el espacio vacío debajo de los archivos
+2. Selecciona **Nueva Carpeta**
+3. Llama a la carpeta `scripts`
 
-### Step 2: Create Shell Script for Mac/Linux
+### Paso 2: Crear el script de shell para Mac/Linux
 
-**Important**: All students (including Windows users) need to create this file, as it will be used by GitHub Actions on Day 5.
+**Importante**: Todos los estudiantes (incluidos los usuarios de Windows) deben crear este archivo, ya que se usará en GitHub Actions en el Día 5.
 
-Create `scripts/deploy.sh`:
+Crea `scripts/deploy.sh`:
 
 ```bash
 #!/bin/bash
@@ -752,14 +752,14 @@ set -e
 ENVIRONMENT=${1:-dev}          # dev | test | prod
 PROJECT_NAME=${2:-twin}
 
-echo "🚀 Deploying ${PROJECT_NAME} to ${ENVIRONMENT}..."
+echo "🚀 Desplegando ${PROJECT_NAME} en ${ENVIRONMENT}..."
 
-# 1. Build Lambda package
-cd "$(dirname "$0")/.."        # project root
-echo "📦 Building Lambda package..."
+# 1. Construir el paquete Lambda
+cd "$(dirname "$0")/.."        # raíz del proyecto
+echo "📦 Construyendo paquete Lambda..."
 (cd backend && uv run deploy.py)
 
-# 2. Terraform workspace & apply
+# 2. Workspace y terraform apply
 cd terraform
 terraform init -input=false
 
@@ -769,25 +769,25 @@ else
   terraform workspace select "$ENVIRONMENT"
 fi
 
-# Use prod.tfvars for production environment
+# Usar prod.tfvars para el entorno de producción
 if [ "$ENVIRONMENT" = "prod" ]; then
   TF_APPLY_CMD=(terraform apply -var-file=prod.tfvars -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve)
 else
   TF_APPLY_CMD=(terraform apply -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve)
 fi
 
-echo "🎯 Applying Terraform..."
+echo "🎯 Aplicando Terraform..."
 "${TF_APPLY_CMD[@]}"
 
 API_URL=$(terraform output -raw api_gateway_url)
 FRONTEND_BUCKET=$(terraform output -raw s3_frontend_bucket)
 CUSTOM_URL=$(terraform output -raw custom_domain_url 2>/dev/null || true)
 
-# 3. Build + deploy frontend
+# 3. Construir y desplegar el frontend
 cd ../frontend
 
-# Create production environment file with API URL
-echo "📝 Setting API URL for production..."
+# Crear archivo .env.production con el URL de la API
+echo "📝 Definiendo API URL para producción..."
 echo "NEXT_PUBLIC_API_URL=$API_URL" > .env.production
 
 npm install
@@ -795,27 +795,27 @@ npm run build
 aws s3 sync ./out "s3://$FRONTEND_BUCKET/" --delete
 cd ..
 
-# 4. Final messages
-echo -e "\n✅ Deployment complete!"
+# 4. Mensajes finales
+echo -e "\n✅ ¡Despliegue completo!"
 echo "🌐 CloudFront URL : $(terraform -chdir=terraform output -raw cloudfront_url)"
 if [ -n "$CUSTOM_URL" ]; then
-  echo "🔗 Custom domain  : $CUSTOM_URL"
+  echo "🔗 Dominio personalizado  : $CUSTOM_URL"
 fi
 echo "📡 API Gateway    : $API_URL"
 ```
 
-**For Mac/Linux users only** - make it executable:
+**Solo para usuarios Mac/Linux** - hazlo ejecutable:
 ```bash
 chmod +x scripts/deploy.sh
 ```
 
-**Windows users**: You don't need to run the chmod command, just create the file.
+**Usuarios Windows**: No es necesario ejecutar el comando chmod, solo crea el archivo.
 
-### Step 3: Create PowerShell Script for Windows
+### Paso 3: Crear el script PowerShell para Windows
 
-**Mac/Linux users**: You can skip this step - it's only needed for Windows users.
+**Usuarios Mac/Linux**: Pueden omitir este paso, solo es necesario para Windows.
 
-Create `scripts/deploy.ps1`:
+Crea `scripts/deploy.ps1`:
 
 ```powershell
 param(
@@ -824,16 +824,16 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
-Write-Host "Deploying $ProjectName to $Environment ..." -ForegroundColor Green
+Write-Host "Desplegando $ProjectName en $Environment ..." -ForegroundColor Green
 
-# 1. Build Lambda package
-Set-Location (Split-Path $PSScriptRoot -Parent)   # project root
-Write-Host "Building Lambda package..." -ForegroundColor Yellow
+# 1. Construir el paquete Lambda
+Set-Location (Split-Path $PSScriptRoot -Parent)   # raíz del proyecto
+Write-Host "Construyendo paquete Lambda..." -ForegroundColor Yellow
 Set-Location backend
 uv run deploy.py
 Set-Location ..
 
-# 2. Terraform workspace & apply
+# 2. Workspace y terraform apply
 Set-Location terraform
 terraform init -input=false
 
@@ -853,11 +853,11 @@ $ApiUrl        = terraform output -raw api_gateway_url
 $FrontendBucket = terraform output -raw s3_frontend_bucket
 try { $CustomUrl = terraform output -raw custom_domain_url } catch { $CustomUrl = "" }
 
-# 3. Build + deploy frontend
+# 3. Construir y desplegar el frontend
 Set-Location ..\frontend
 
-# Create production environment file with API URL
-Write-Host "Setting API URL for production..." -ForegroundColor Yellow
+# Crear archivo .env.production con el URL de la API
+Write-Host "Definiendo API URL para producción..." -ForegroundColor Yellow
 "NEXT_PUBLIC_API_URL=$ApiUrl" | Out-File .env.production -Encoding utf8
 
 npm install
@@ -865,27 +865,27 @@ npm run build
 aws s3 sync .\out "s3://$FrontendBucket/" --delete
 Set-Location ..
 
-# 4. Final summary
+# 4. Resumen final
 $CfUrl = terraform -chdir=terraform output -raw cloudfront_url
-Write-Host "Deployment complete!" -ForegroundColor Green
+Write-Host "¡Despliegue completo!" -ForegroundColor Green
 Write-Host "CloudFront URL : $CfUrl" -ForegroundColor Cyan
 if ($CustomUrl) {
-    Write-Host "Custom domain  : $CustomUrl" -ForegroundColor Cyan
+    Write-Host "Dominio personalizado  : $CustomUrl" -ForegroundColor Cyan
 }
 Write-Host "API Gateway    : $ApiUrl" -ForegroundColor Cyan
 
 ```
 
-## Part 5: Deploy Development Environment
+## Parte 5: Desplegar entorno de desarrollo
 
-### Step 1: Initialize Terraform
+### Paso 1: Inicializar Terraform
 
 ```bash
 cd terraform
 terraform init
 ```
 
-You should see:
+Deberías ver:
 ```
 Initializing the backend...
 Initializing provider plugins...
@@ -893,38 +893,38 @@ Initializing provider plugins...
 Terraform has been successfully initialized!
 ```
 
-### Step 2: Deploy Using the Script
+### Paso 2: Desplegar usando el script
 
-**Mac/Linux from the project root:**
+**Mac/Linux desde la raíz del proyecto:**
 ```bash
 ./scripts/deploy.sh dev
 ```
 
-**Windows (PowerShell) from the project root:**
+**Windows (PowerShell) desde la raíz del proyecto:**
 ```powershell
 .\scripts\deploy.ps1 -Environment dev
 ```
 
-The script will:
-1. Build the Lambda package
-2. Create a `dev` workspace in Terraform
-3. Deploy all infrastructure
-4. Build and deploy the frontend
-5. Display the URLs
+El script hará:
+1. Construir el paquete Lambda
+2. Crear un workspace `dev` en Terraform
+3. Desplegar toda la infraestructura
+4. Construir y desplegar el frontend
+5. Mostrar las URLs
 
-### Step 3: Test Your Development Environment
+### Paso 3: Probar tu entorno de desarrollo
 
-1. Visit the CloudFront URL shown in the output
-2. Test the chat functionality
-3. Verify everything works as before
+1. Visita el URL de CloudFront mostrado en la salida
+2. Prueba la funcionalidad del chat
+3. Verifica que todo funciona como antes
 
-✅ **Checkpoint**: Your dev environment is now deployed via Terraform!
+✅ **Punto de control**: ¡Tu entorno dev está desplegado ahora vía Terraform!
 
-## Part 6: Deploy Test Environment
+## Parte 6: Desplegar entorno de test
 
-Now let's deploy a completely separate test environment:
+Ahora vamos a desplegar un entorno de test completamente separado:
 
-### Step 1: Deploy Test Environment
+### Paso 1: Desplegar entorno de test
 
 **Mac/Linux:**
 ```bash
@@ -936,110 +936,110 @@ Now let's deploy a completely separate test environment:
 .\scripts\deploy.ps1 -Environment test
 ```
 
-### Step 2: Verify Separate Resources
+### Paso 2: Verificar recursos separados
 
-Check the AWS Console - you'll see separate resources for test:
-- `twin-test-api` Lambda function
-- `twin-test-memory` S3 bucket
-- `twin-test-frontend` S3 bucket
-- `twin-test-api-gateway` API Gateway
-- Separate CloudFront distribution
+Revisa la consola de AWS - verás recursos separados para test:
+- Función Lambda `twin-test-api`
+- Bucket S3 `twin-test-memory`
+- Bucket S3 `twin-test-frontend`
+- API Gateway `twin-test-api-gateway`
+- Distribución de CloudFront separada
 
-### Step 3: Test Both Environments
+### Paso 3: Probar ambos entornos
 
-1. Open dev CloudFront URL in one browser tab
-2. Open test CloudFront URL in another tab
-3. Have different conversations - they're completely isolated!
+1. Abre la URL de CloudFront de dev en una pestaña del navegador
+2. Abre la URL de CloudFront de test en otra pestaña
+3. Ten conversaciones diferentes - ¡están completamente aislados!
 
-## Part 7: Destroying Infrastructure
+## Parte 7: Destruir la infraestructura
 
-When you're done with an environment, you need to properly clean it up. Since S3 buckets must be empty before deletion, we'll create scripts to handle this automatically.
+Cuando termines con un entorno, es importante limpiarlo correctamente. Como los buckets S3 deben estar vacíos antes de ser eliminados, crearemos scripts para manejar esto automáticamente.
 
-### Step 1: Create Destroy Script for Mac/Linux
+### Paso 1: Crear script destroy para Mac/Linux
 
-Create `scripts/destroy.sh`:
+Crea `scripts/destroy.sh`:
 
 ```bash
 #!/bin/bash
 set -e
 
-# Check if environment parameter is provided
+# Comprobar si el parámetro de entorno ha sido proporcionado
 if [ $# -eq 0 ]; then
-    echo "❌ Error: Environment parameter is required"
-    echo "Usage: $0 <environment>"
-    echo "Example: $0 dev"
-    echo "Available environments: dev, test, prod"
+    echo "❌ Error: Se requiere parámetro de entorno"
+    echo "Uso: $0 <entorno>"
+    echo "Ejemplo: $0 dev"
+    echo "Entornos disponibles: dev, test, prod"
     exit 1
 fi
 
 ENVIRONMENT=$1
 PROJECT_NAME=${2:-twin}
 
-echo "🗑️ Preparing to destroy ${PROJECT_NAME}-${ENVIRONMENT} infrastructure..."
+echo "🗑️ Preparando para destruir la infraestructura de ${PROJECT_NAME}-${ENVIRONMENT}..."
 
-# Navigate to terraform directory
+# Ir al directorio terraform
 cd "$(dirname "$0")/../terraform"
 
-# Check if workspace exists
+# Comprobar si existe el workspace
 if ! terraform workspace list | grep -q "$ENVIRONMENT"; then
-    echo "❌ Error: Workspace '$ENVIRONMENT' does not exist"
-    echo "Available workspaces:"
+    echo "❌ Error: El workspace '$ENVIRONMENT' no existe"
+    echo "Workspaces disponibles:"
     terraform workspace list
     exit 1
 fi
 
-# Select the workspace
+# Seleccionar el workspace
 terraform workspace select "$ENVIRONMENT"
 
-echo "📦 Emptying S3 buckets..."
+echo "📦 Vaciando los buckets S3..."
 
-# Get AWS Account ID for bucket names
+# Obtener el ID de cuenta AWS para los nombres de los buckets
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-# Get bucket names with account ID
+# Nombres de los buckets con ID de cuenta
 FRONTEND_BUCKET="${PROJECT_NAME}-${ENVIRONMENT}-frontend-${AWS_ACCOUNT_ID}"
 MEMORY_BUCKET="${PROJECT_NAME}-${ENVIRONMENT}-memory-${AWS_ACCOUNT_ID}"
 
-# Empty frontend bucket if it exists
+# Vaciar el bucket de frontend si existe
 if aws s3 ls "s3://$FRONTEND_BUCKET" 2>/dev/null; then
-    echo "  Emptying $FRONTEND_BUCKET..."
+    echo "  Vaciando $FRONTEND_BUCKET..."
     aws s3 rm "s3://$FRONTEND_BUCKET" --recursive
 else
-    echo "  Frontend bucket not found or already empty"
+    echo "  Bucket frontend no encontrado o ya vacío"
 fi
 
-# Empty memory bucket if it exists
+# Vaciar el bucket de memoria si existe
 if aws s3 ls "s3://$MEMORY_BUCKET" 2>/dev/null; then
-    echo "  Emptying $MEMORY_BUCKET..."
+    echo "  Vaciando $MEMORY_BUCKET..."
     aws s3 rm "s3://$MEMORY_BUCKET" --recursive
 else
-    echo "  Memory bucket not found or already empty"
+    echo "  Bucket memory no encontrado o ya vacío"
 fi
 
-echo "🔥 Running terraform destroy..."
+echo "🔥 Ejecutando terraform destroy..."
 
-# Run terraform destroy with auto-approve
+# Ejecutar terraform destroy automático
 if [ "$ENVIRONMENT" = "prod" ] && [ -f "prod.tfvars" ]; then
     terraform destroy -var-file=prod.tfvars -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve
 else
     terraform destroy -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -auto-approve
 fi
 
-echo "✅ Infrastructure for ${ENVIRONMENT} has been destroyed!"
+echo "✅ ¡Infraestructura de ${ENVIRONMENT} destruida!"
 echo ""
-echo "💡 To remove the workspace completely, run:"
+echo "💡 Para eliminar completamente el workspace, ejecuta:"
 echo "   terraform workspace select default"
 echo "   terraform workspace delete $ENVIRONMENT"
 ```
 
-Make it executable:
+Hazlo ejecutable:
 ```bash
 chmod +x scripts/destroy.sh
 ```
 
-### Step 2: Create Destroy Script for Windows
+### Paso 2: Crear script destroy para Windows
 
-Create `scripts/destroy.ps1`:
+Crea `scripts/destroy.ps1`:
 
 ```powershell
 param(
@@ -1048,173 +1048,172 @@ param(
     [string]$ProjectName = "twin"
 )
 
-# Validate environment parameter
+# Validar parámetro de entorno
 if ($Environment -notmatch '^(dev|test|prod)$') {
-    Write-Host "Error: Invalid environment '$Environment'" -ForegroundColor Red
-    Write-Host "Available environments: dev, test, prod" -ForegroundColor Yellow
+    Write-Host "Error: Entorno '$Environment' no válido" -ForegroundColor Red
+    Write-Host "Entornos disponibles: dev, test, prod" -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host "Preparing to destroy $ProjectName-$Environment infrastructure..." -ForegroundColor Yellow
+Write-Host "Preparando para destruir la infraestructura $ProjectName-$Environment..." -ForegroundColor Yellow
 
-# Navigate to terraform directory
+# Ir al directorio terraform
 Set-Location (Join-Path (Split-Path $PSScriptRoot -Parent) "terraform")
 
-# Check if workspace exists
+# Comprobar si existe el workspace
 $workspaces = terraform workspace list
 if (-not ($workspaces | Select-String $Environment)) {
-    Write-Host "Error: Workspace '$Environment' does not exist" -ForegroundColor Red
-    Write-Host "Available workspaces:" -ForegroundColor Yellow
+    Write-Host "Error: El workspace '$Environment' no existe" -ForegroundColor Red
+    Write-Host "Workspaces disponibles:" -ForegroundColor Yellow
     terraform workspace list
     exit 1
 }
 
-# Select the workspace
+# Seleccionar el workspace
 terraform workspace select $Environment
 
-Write-Host "Emptying S3 buckets..." -ForegroundColor Yellow
+Write-Host "Vaciando los buckets S3..." -ForegroundColor Yellow
 
-# Get AWS Account ID for bucket names
+# Obtener ID de cuenta AWS para los nombres de los buckets
 $awsAccountId = aws sts get-caller-identity --query Account --output text
 
-# Define bucket names with account ID
+# Definir nombres de buckets con ID de cuenta
 $FrontendBucket = "$ProjectName-$Environment-frontend-$awsAccountId"
 $MemoryBucket = "$ProjectName-$Environment-memory-$awsAccountId"
 
-# Empty frontend bucket if it exists
+# Vaciar el bucket de frontend si existe
 try {
     aws s3 ls "s3://$FrontendBucket" 2>$null | Out-Null
-    Write-Host "  Emptying $FrontendBucket..." -ForegroundColor Gray
+    Write-Host "  Vaciando $FrontendBucket..." -ForegroundColor Gray
     aws s3 rm "s3://$FrontendBucket" --recursive
 } catch {
-    Write-Host "  Frontend bucket not found or already empty" -ForegroundColor Gray
+    Write-Host "  Bucket frontend no encontrado o ya vacío" -ForegroundColor Gray
 }
 
-# Empty memory bucket if it exists
+# Vaciar el bucket de memoria si existe
 try {
     aws s3 ls "s3://$MemoryBucket" 2>$null | Out-Null
-    Write-Host "  Emptying $MemoryBucket..." -ForegroundColor Gray
+    Write-Host "  Vaciando $MemoryBucket..." -ForegroundColor Gray
     aws s3 rm "s3://$MemoryBucket" --recursive
 } catch {
-    Write-Host "  Memory bucket not found or already empty" -ForegroundColor Gray
+    Write-Host "  Bucket memory no encontrado o ya vacío" -ForegroundColor Gray
 }
 
-Write-Host "Running terraform destroy..." -ForegroundColor Yellow
+Write-Host "Ejecutando terraform destroy..." -ForegroundColor Yellow
 
-# Run terraform destroy with auto-approve
+# Ejecutar terraform destroy con auto-approve
 if ($Environment -eq "prod" -and (Test-Path "prod.tfvars")) {
     terraform destroy -var-file=prod.tfvars -var="project_name=$ProjectName" -var="environment=$Environment" -auto-approve
 } else {
     terraform destroy -var="project_name=$ProjectName" -var="environment=$Environment" -auto-approve
 }
 
-Write-Host "Infrastructure for $Environment has been destroyed!" -ForegroundColor Green
+Write-Host "¡Infraestructura de $Environment destruida!" -ForegroundColor Green
 Write-Host ""
-Write-Host "  To remove the workspace completely, run:" -ForegroundColor Cyan
+Write-Host "  Para eliminar completamente el workspace, ejecuta:" -ForegroundColor Cyan
 Write-Host "   terraform workspace select default" -ForegroundColor White
 Write-Host "   terraform workspace delete $Environment" -ForegroundColor White
 ```
 
-### Step 3: Using the Destroy Scripts
+### Paso 3: Usando los scripts de destrucción
 
-To destroy a specific environment:
+Para destruir un entorno específico:
 
 **Mac/Linux:**
 ```bash
-# Destroy dev environment
+# Destruir entorno dev
 ./scripts/destroy.sh dev
 
-# Destroy test environment
+# Destruir entorno test
 ./scripts/destroy.sh test
 
-# Destroy prod environment
+# Destruir entorno prod
 ./scripts/destroy.sh prod
 ```
 
 **Windows (PowerShell):**
 ```powershell
-# Destroy dev environment
+# Destruir entorno dev
 .\scripts\destroy.ps1 -Environment dev
 
-# Destroy test environment
+# Destruir entorno test
 .\scripts\destroy.ps1 -Environment test
 
-# Destroy prod environment
+# Destruir entorno prod
 .\scripts\destroy.ps1 -Environment prod
 ```
 
-### What Gets Destroyed
+### ¿Qué se destruye?
 
-The destroy scripts will:
-1. Empty S3 buckets (frontend and memory)
-2. Delete all AWS resources created by Terraform:
-   - Lambda functions
+Los scripts de destrucción:
+1. Vacían los buckets S3 (frontend y memory)
+2. Eliminan todos los recursos de AWS creados por Terraform:
+   - Funciones Lambda
    - API Gateway
-   - S3 buckets
-   - CloudFront distributions
-   - IAM roles and policies
-   - Route 53 records (if custom domain)
-   - ACM certificates (if custom domain)
+   - Buckets S3
+   - Distribuciones de CloudFront
+   - Roles y políticas IAM
+   - Registros de Route 53 (si hay dominio personalizado)
+   - Certificados ACM (si hay dominio personalizado)
 
-### Important Notes
+### Notas importantes
 
-- **CloudFront**: Distributions can take 5-15 minutes to fully delete
-- **Workspaces**: The scripts destroy resources but keep the workspace. To fully remove a workspace:
+- **CloudFront**: Las distribuciones pueden tardar 5-15 minutos en eliminarse completamente
+- **Workspaces**: Los scripts destruyen recursos pero dejan el workspace. Para eliminar completamente un workspace:
   ```bash
   terraform workspace select default
-  terraform workspace delete dev  # or test, prod
+  terraform workspace delete dev  # o test, prod
   ```
-- **Cost Savings**: Always destroy unused environments to avoid charges
+- **Ahorro de costes**: Siempre destruye entornos no usados para evitar cargos
 
+## Parte 8: OPCIONAL - Añadir dominio personalizado
 
-## Part 8: OPTIONAL - Add a Custom Domain
+Si quieres un dominio profesional para tu twin en producción, sigue estos pasos.
 
-If you want a professional domain for your production twin, follow these steps.
+### Paso 1: Registrar un dominio (si es necesario)
 
-### Step 1: Register a Domain (if needed)
+**Importante**: Registrar dominios requiere permisos de facturación, así que deberás iniciar sesión como **root user** para este paso.
 
-**Important**: Domain registration requires billing permissions, so you'll need to sign in as the **root user** for this step.
+**Opción A: Registrar a través de AWS Route 53**
+1. Cierra sesión de tu usuario IAM
+2. Inicia sesión en la consola de AWS como **root user**
+3. Ve a Route 53 en la consola de AWS
+4. Haz clic en **Registered domains** → **Register domain**
+5. Busca tu dominio deseado
+6. Agrega al carrito y finaliza la compra (normalmente $12-40/año según el dominio)
+7. Espera el registro (5-30 minutos)
+8. Una vez registrado, vuelve a iniciar sesión como tu usuario IAM (`aiengineer`) para continuar
 
-**Option A: Register through AWS Route 53**
-1. Sign out of your IAM user account
-2. Sign in to AWS Console as the **root user**
-3. Go to Route 53 in AWS Console
-4. Click **Registered domains** → **Register domain**
-5. Search for your desired domain
-6. Add to cart and complete purchase (typically $12-40/year depending on domain)
-7. Wait for registration (5-30 minutes)
-8. Once registered, sign back in as your IAM user (`aiengineer`) to continue
+**Opción B: Usar dominio existente**
+- Si ya posees un dominio:
+  - Transfiere el DNS a Route 53, o
+  - Crea la zona alojada y actualiza los nameservers en tu registrador
 
-**Option B: Use existing domain**
-- If you already own a domain elsewhere:
-  - Transfer DNS to Route 53, or
-  - Create a hosted zone and update nameservers at your registrar
+### Paso 2: Crear zona alojada (si no se creó automáticamente)
 
-### Step 2: Create Hosted Zone (if not auto-created)
+Si Route 53 no creó la zona alojada automáticamente:
+1. Ve a Route 53 → **Hosted zones**
+2. Haz clic en **Create hosted zone**
+3. Escribe tu dominio
+4. Tipo: Public hosted zone
+5. Haz clic en **Create**
 
-If Route 53 didn't auto-create a hosted zone:
-1. Go to Route 53 → **Hosted zones**
-2. Click **Create hosted zone**
-3. Enter your domain name
-4. Type: Public hosted zone
-5. Click **Create**
+### Paso 3: Crear configuración de producción
 
-### Step 3: Create Production Configuration
-
-Create `terraform/prod.tfvars`:
+Crea `terraform/prod.tfvars`:
 
 ```hcl
 project_name             = "twin"
 environment              = "prod"
-bedrock_model_id         = "amazon.nova-lite-v1:0"  # Use better model for production
+bedrock_model_id         = "amazon.nova-lite-v1:0"  # Mejor modelo para producción
 lambda_timeout           = 60
 api_throttle_burst_limit = 20
 api_throttle_rate_limit  = 10
 use_custom_domain        = true
-root_domain              = "yourdomain.com"  # Replace with your actual domain
+root_domain              = "tudominio.com"  # Reemplaza por tu dominio real
 ```
 
-### Step 4: Deploy Production with Domain
+### Paso 4: Desplegar producción con dominio
 
 **Mac/Linux:**
 ```bash
@@ -1226,26 +1225,26 @@ root_domain              = "yourdomain.com"  # Replace with your actual domain
 .\scripts\deploy.ps1 -Environment prod
 ```
 
-The deployment will:
-1. Create SSL certificate in ACM
-2. Validate domain ownership via DNS
-3. Configure CloudFront with your domain
-4. Set up Route 53 records
+El despliegue hará:
+1. Crear certificado SSL en ACM
+2. Validar propiedad del dominio vía DNS
+3. Configurar CloudFront con tu dominio
+4. Crear registros de Route 53
 
-**Note**: Certificate validation can take 5-30 minutes. The script will wait.
+**Nota**: La validación del certificado puede tardar 5-30 minutos. El script esperará.
 
-### Step 5: Test Your Custom Domain
+### Paso 5: Probar tu dominio personalizado
 
-Once deployed:
-1. Visit `https://yourdomain.com`
-2. Visit `https://www.yourdomain.com`
-3. Both should show your Digital Twin!
+Una vez desplegado:
+1. Visita `https://tudominio.com`
+2. Visita `https://www.tudominio.com`
+3. ¡Ambas deben mostrar tu Digital Twin!
 
-## Understanding Terraform Workspaces
+## Comprendiendo los Workspaces de Terraform
 
-### How Workspaces Isolate Environments
+### Cómo los workspaces aíslan entornos
 
-Each workspace maintains its own state file:
+Cada workspace mantiene su propio archivo de estado:
 ```
 terraform.tfstate.d/
 ├── dev/
@@ -1256,134 +1255,134 @@ terraform.tfstate.d/
     └── terraform.tfstate
 ```
 
-### Managing Workspaces
+### Gestión de workspaces
 
-**List workspaces:**
+**Listar workspaces:**
 ```bash
 terraform workspace list
 ```
 
-**Switch workspace:**
+**Cambiar workspace:**
 ```bash
 terraform workspace select dev
 ```
 
-**Show current workspace:**
+**Ver el workspace actual:**
 ```bash
 terraform workspace show
 ```
 
-### Resource Naming
+### Nombrado de recursos
 
-Resources are named with environment prefix:
+Los recursos son nombrados con prefijo de entorno:
 - Dev: `twin-dev-api`, `twin-dev-memory`
 - Test: `twin-test-api`, `twin-test-memory`
 - Prod: `twin-prod-api`, `twin-prod-memory`
 
-## Cost Optimization
+## Optimización de Costes
 
-### Environment-Specific Settings
+### Configuración específica por entorno
 
-Our configuration uses different settings per environment:
+Nuestra configuración usa diferentes parámetros según el entorno:
 
-**Development:**
-- Nova Micro model (cheapest)
-- Lower API throttling
-- No custom domain
+**Desarrollo:**
+- Modelo Nova Micro (el más barato)
+- Throttling bajo en API
+- Sin dominio personalizado
 
 **Test:**
-- Nova Micro model
-- Standard throttling
-- No custom domain
+- Modelo Nova Micro
+- Throttling estándar
+- Sin dominio personalizado
 
-**Production:**
-- Nova Lite model (better quality)
-- Higher throttling limits
-- Custom domain with SSL
+**Producción:**
+- Modelo Nova Lite (más calidad)
+- Límites de throttling más altos
+- Dominio personalizado con SSL
 
-### Cost-Saving Tips
+### Consejos para ahorrar gastos
 
-1. **Destroy unused environments** - Don't leave test running
-2. **Use appropriate models** - Nova Micro for dev/test
-3. **Set API throttling** - Prevent runaway costs
-4. **Monitor with tags** - All resources tagged with environment
+1. **Destruye entornos no usados** - No dejes test funcionando innecesariamente
+2. **Usa modelos adecuados** - Nova Micro para dev/test
+3. **Configura el throttling de API** - Evita gastos inesperados
+4. **Monitorea con etiquetas** - Todos los recursos están etiquetados por entorno
 
-## Troubleshooting
+## Resolución de problemas (Troubleshooting)
 
-### Terraform State Issues
+### Problemas de estado de Terraform
 
-If Terraform gets confused about resources:
+Si Terraform se confunde sobre los recursos:
 
 ```bash
-# Refresh state from AWS
+# Actualiza el estado desde AWS
 terraform refresh
 
-# If resource exists in AWS but not state
+# Si el recurso existe en AWS pero no en el estado
 terraform import aws_lambda_function.api twin-dev-api
 ```
 
-### Deployment Script Failures
+### Fallos del script de despliegue
 
 **"Lambda package not found"**
-- Ensure Docker is running
-- Run `cd backend && uv run deploy.py` manually
+- Asegúrate de que Docker esté corriendo
+- Ejecuta `cd backend && uv run deploy.py` manualmente
 
 **"S3 bucket already exists"**
-- Bucket names must be globally unique
-- Change project_name in terraform.tfvars
+- Los nombres de buckets deben ser únicos globalmente
+- Cambia project_name en terraform.tfvars
 
 **"Certificate validation timeout"**
-- Check Route 53 has the validation records
-- Wait longer (can take up to 30 minutes)
+- Verifica que Route 53 tenga los registros de validación
+- Espera más tiempo (puede tardar hasta 30 minutos)
 
-### Frontend Not Updating
+### Frontend sin actualizarse
 
-After deployment, CloudFront may cache old content:
+Después del despliegue, CloudFront puede cachear contenido antiguo:
 
 ```bash
-# Get distribution ID
+# Obtener ID de la distribución
 aws cloudfront list-distributions --query "DistributionList.Items[?Comment=='twin-dev'].Id" --output text
 
-# Create invalidation
+# Hacer invalidación
 aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 ```
 
-## Best Practices
+## Buenas prácticas
 
-### 1. Version Control
+### 1. Control de versiones
 
-Always commit your Terraform files:
+Siempre sube tus archivos Terraform al control de versiones:
 ```bash
 git add terraform/*.tf terraform/*.tfvars
 git commit -m "Add Terraform infrastructure"
 ```
 
-Never commit:
-- `terraform.tfstate` files
-- `.terraform/` directory
-- AWS credentials
+Nunca subas:
+- Archivos `terraform.tfstate`
+- Directorio `.terraform/`
+- Credenciales AWS
 
-### 2. Plan Before Apply
+### 2. Revisa antes de aplicar
 
-Review changes before applying:
+Antes de ejecutar cambios:
 ```bash
 terraform plan
 ```
 
-### 3. Use Variables
+### 3. Usa variables
 
-Don't hardcode values - use variables:
+No pongas valores fijos, usa variables:
 ```hcl
-# Good
+# Correcto
 bucket = "${local.name_prefix}-memory"
 
-# Bad
+# Incorrecto
 bucket = "twin-dev-memory"
 ```
 
-### 4. Tag Everything
+### 4. Etiqueta todo
 
-Our configuration tags all resources:
+Nuestra configuración etiqueta todos los recursos:
 ```hcl
 tags = {
   Project     = var.project_name
@@ -1392,49 +1391,49 @@ tags = {
 }
 ```
 
-## What You've Accomplished Today!
+## ¡Lo que lograste hoy!
 
-- ✅ Learned Infrastructure as Code with Terraform
-- ✅ Automated entire AWS deployment
-- ✅ Created multiple isolated environments
-- ✅ Implemented one-command deployment
-- ✅ Set up professional deployment scripts
-- ✅ Optional: Configured custom domain with SSL
+- ✅ Aprendiste Infraestructura como Código con Terraform
+- ✅ Automatizaste el despliegue completo en AWS
+- ✅ Creaste múltiples entornos aislados
+- ✅ Hiciste despliegues con un solo comando
+- ✅ Configuraste scripts profesionales de despliegue
+- ✅ Opcional: Configuraste dominio personalizado con SSL
 
-## Architecture Summary
+## Resumen de Arquitectura
 
-Your Terraform manages:
+Tu Terraform gestiona:
 
 ```
-Terraform Configuration
-    ├── S3 Buckets (Frontend + Memory)
-    ├── Lambda Function with IAM Role
-    ├── API Gateway with Routes
-    ├── CloudFront Distribution
-    └── Optional: Route 53 + ACM Certificate
+Configuración Terraform
+    ├── Buckets S3 (Frontend + Memory)
+    ├── Lambda con rol IAM
+    ├── API Gateway con rutas
+    ├── Distribución CloudFront
+    └── Opcional: Route 53 + Certificado ACM
 
-Managed via Workspaces:
-    ├── dev/   (Development environment)
-    ├── test/  (Testing environment)
-    └── prod/  (Production with custom domain)
+Gestionado mediante Workspaces:
+    ├── dev/   (Entorno de desarrollo)
+    ├── test/  (Entorno de pruebas)
+    └── prod/  (Producción con dominio personalizado)
 ```
 
-## Next Steps
+## Próximos pasos
 
-Tomorrow (Day 5), we'll add CI/CD with GitHub Actions:
-- Automated testing on pull requests
-- Deployment pipelines for each environment
-- Infrastructure change reviews
-- Automated rollbacks
-- Complete infrastructure teardown
+Mañana (Día 5) agregaremos CI/CD con GitHub Actions:
+- Tests automatizados en cada pull request
+- Pipelines de despliegue para cada entorno
+- Revisión de cambios en infraestructura
+- Rollbacks automáticos
+- Eliminación completa de infraestructura
 
-Your Digital Twin now has professional Infrastructure as Code that any team can deploy and manage!
+¡Tu Digital Twin ya tiene Infraestructura como Código profesional que cualquier equipo puede desplegar y gestionar!
 
-## Resources
+## Recursos
 
-- [Terraform Documentation](https://www.terraform.io/docs)
-- [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest)
-- [Terraform Best Practices](https://www.terraform-best-practices.com/)
-- [AWS IAM Best Practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
+- [Documentación de Terraform](https://www.terraform.io/docs)
+- [Proveedor AWS de Terraform](https://registry.terraform.io/providers/hashicorp/aws/latest)
+- [Buenas prácticas con Terraform](https://www.terraform-best-practices.com/)
+- [Buenas prácticas IAM de AWS](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)
 
-Congratulations on automating your infrastructure deployment! 🚀
+¡Felicidades por automatizar el despliegue de tu infraestructura! 🚀
