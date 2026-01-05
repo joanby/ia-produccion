@@ -86,7 +86,7 @@ agent = Agent()
 
 @app.entrypoint
 def invoke(payload):
-    """Make a simple call to a Strands Agent"""
+    """Realiza una llamada simple a Strands Agent"""
     user_message = payload.get("prompt")
     result = agent(user_message)
     return result.message
@@ -104,7 +104,7 @@ uv run first.py
 Deja este servidor en ejecución y abre una **nueva terminal** en Cursor. Envía un mensaje con el siguiente comando:
 
 ```bash
-curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"prompt": "Hello can you hear me??"}'
+curl -X POST http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"prompt": "Hola, ¿¿me escuchas??"}'
 ```
 
 ---
@@ -145,7 +145,7 @@ uv run agentcore launch
 Y luego…
 
 ```bash
-uv run agentcore invoke '{"prompt": "Hello can you hear me??"}'
+uv run agentcore invoke '{"prompt": "Hola, ¿¿me escuchas??"}'
 ```
 
 ---
@@ -170,7 +170,7 @@ Agrega esto al inicio de tu archivo **`first.py`**, justo debajo de los *imports
 ```python
 @tool
 def take_square_root(input_number: float):
-    """Calculate the square root of the given number"""
+    """Calcula la raíz cuadrada de un número dado"""
     return str(math.sqrt(input_number))
 ```
 
@@ -180,7 +180,7 @@ Y luego:
 
 `uv run agentcore launch`
 
-`uv run agentcore invoke '{"prompt": "Use your tool to calculate the square root of 1234567 to 3 decimal places"}'`
+`uv run agentcore invoke '{"prompt": "Usa tu herramienta para calcular la raíz cuadrada de 1234567 con 3 decimales"}'`
 
 ¡Eso es uso de herramientas! 🔧✨
 
@@ -206,19 +206,19 @@ app = BedrockAgentCoreApp()
 
 
 class ToDoItem(BaseModel):
-    description: str = Field(..., description="The text describing the task")
-    completed: bool = Field(False, description="Whether the task is complete")
+    description: str = Field(..., description="El texto que describe la tarea")
+    completed: bool = Field(False, description="Si la tarea ha sido completada o no")
 
 
 todos = []
 
 system_prompt = """
-You are given a problem to solve, by using your todo tools to plan a list of steps, then carrying out each step in turn.
-Now use the todo list tools, create a plan, carry out the steps, and reply with the solution.
+Se te da un problema para resolver, utilizando tus herramientas de lista de tareas para planificar una lista de pasos, luego llevando a cabo cada paso en orden.
+Ahora utiliza las herramientas de la lista de tareas, crea un plan, realiza los pasos y responde con la solución.
 """
 
 def get_todo_report() -> str:
-    """Get a report of all todos."""
+    """Obtiee un reporte de todas las tareas."""
     result = ""
     for index, todo in enumerate(todos):
         completed = "X" if todo.completed else " "
@@ -230,7 +230,7 @@ def get_todo_report() -> str:
 
 @tool
 def create_todos(descriptions: List[str]) -> str:
-    """Add new todos from a list of descriptions and return the full list"""
+    """Agregar nuevas tareas a partir de una lista de descripciones y devolver la lista completa"""
     for desc in descriptions:
         todos.append(ToDoItem(description=desc))
     return get_todo_report()
@@ -238,7 +238,7 @@ def create_todos(descriptions: List[str]) -> str:
 
 @tool
 def mark_complete(index: int) -> str:
-    """Mark complete the todo at the given position (starting from 1) and return the full list"""
+    """Marca como completada la tarea en la posición dada (empezando desde 1) y devuelve la lista completa"""
     if 1 <= index <= len(todos):
         todos[index - 1].completed = True
     else:
@@ -248,7 +248,7 @@ def mark_complete(index: int) -> str:
 
 @tool
 def list_todos() -> str:
-    """Return the full list of todos with completed ones checked off"""
+    """Devuelve la lista completa de tareas, marcando las completadas."""
     return get_todo_report()
 
 
@@ -281,7 +281,7 @@ Selecciona todos los valores por defecto y luego:
 
 Y finalmente...
 
-`uv run agentcore invoke '{"prompt": "A train leaves Boston at 2:00 pm traveling 60 mph. Another train leaves New York at 3:00 pm traveling 80 mph toward Boston. When do they meet?"}'`
+`uv run agentcore invoke '{"prompt": "Un tren sale de Boston a las 2:00 pm viajando a 60 mph. Otro tren sale de Nueva York a las 3:00 pm viajando a 80 mph hacia Boston. ¿Cuándo se encuentran?"}'`
 
 ¡Qué genial es eso! 🤩🚆
 
@@ -300,7 +300,7 @@ code_client = CodeInterpreter("us-west-2")
 
 @tool
 def execute_python(code: str) -> str:
-    """Execute Python code in the code interpreter."""
+    """Ejecuta código Python en el intérprete de código."""
     response = code_client.invoke("executeCode", {"language": "python", "code": code})
     output = []
     for event in response["stream"]:
@@ -314,11 +314,11 @@ Actualiza el prompt de sistema:
 
 ```python
 system_prompt = """
-You are given a problem to solve, by using your todo tools to plan a list of steps, then carrying out each step in turn.
-You also have access to an execute_python tool to run Python.
-Your plan should include solving the problem without Python, then writing and executing Python code to validate your solution.
-To use the execute_python tool to validate your solution, you must have a task on your todo list prefixed with "Write Python code to...".
-Now use the todo list tools, create a plan, carry out the steps, and reply with the solution.
+Se te presenta un problema para resolver, utilizando tus herramientas de lista de tareas (todo) para planificar una serie de pasos y realizarlos uno a uno.
+También tienes acceso a la herramienta execute_python para ejecutar código Python.
+Tu plan debe incluir la resolución del problema sin Python, y luego escribir y ejecutar código Python para validar tu solución.
+Para utilizar la herramienta execute_python en la validación, debes tener una tarea en tu lista que empiece con "Escribe código Python para...".
+Ahora utiliza las herramientas de la lista de tareas, crea un plan, ejecuta los pasos y responde con la solución.
 """
 ```
 
@@ -326,7 +326,7 @@ Actualiza el método **`get_todo_report()`** para resaltar las tareas relacionad
 
 ```python
 def get_todo_report() -> str:
-    """Get a report of all todos."""
+    """Obtén un informe de todas las tareas pendientes."""
     result = ""
     for index, todo in enumerate(todos):
         completed = "X" if todo.completed else " "
@@ -353,7 +353,7 @@ uv run agentcore launch
 Y luego…
 
 ```bash
-uv run agentcore invoke '{"prompt": "A train leaves Boston at 2:00 pm traveling 60 mph. Another train leaves New York at 3:00 pm traveling 80 mph toward Boston. When do they meet?"}'
+uv run agentcore invoke '{"prompt": "Un tren sale de Boston a las 14:00 viajando a 60 mph. Otro tren sale de Nueva York a las 15:00 viajando a 80 mph hacia Boston. ¿Cuándo se encuentran?"}'
 ```
 
 ¡Qué divertido! 😄🚄
